@@ -16,6 +16,7 @@ public class Plugin {
 
         CodeGeneratorResponse.newBuilder() // Intellij wants to hide reference to CodeGeneratorResponse here
                 .addAllFile(modifications(request))
+                .setSupportedFeatures(Feature.FEATURE_PROTO3_OPTIONAL_VALUE) // Trivial support - we don't care
                 .build()
                 .writeTo(System.out);
     }
@@ -26,7 +27,7 @@ public class Plugin {
                 .forEach(fileDescriptorProto -> lookup.put(fileDescriptorProto.getName(), fileDescriptorProto));
 
         return request
-                .getFileToGenerateList()
+                .getFileToGenerateList() // list of .proto file names to work with
                 .stream()
                 .map(lookup::get)
                 .flatMap(Plugin::modifications)
