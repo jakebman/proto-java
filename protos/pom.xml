@@ -10,9 +10,9 @@
     <version>${revision}${sha1}${changelist}</version>
   </parent>
 
-  <artifactId>protobuf-example</artifactId>
+  <artifactId>protos</artifactId>
 
-  <name>protobuf-example</name>
+  <name>protos</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
