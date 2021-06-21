@@ -1,7 +1,6 @@
 package com.boeckerman.jake.protobuf;
 
 import com.google.protobuf.DescriptorProtos;
-import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -88,15 +87,11 @@ public class CodeGeneratorImpl implements CodeGenerator {
         } else if(options.hasJavaOuterClassname()) {
             out.append(options.getJavaOuterClassname());
         } else {
-            out.append(CamelCase(descriptorProto.getName()))
+            out.append(CodeGeneratorUtils.CamelCase(descriptorProto.getName()))
                     .append("OuterClass");
         }
         out.append(".java");
         return out.toString();
-    }
-
-    private static String CamelCase(String name_with_underscores) {
-        return WordUtils.capitalizeFully(name_with_underscores, '_');
     }
 
     private static final Pattern SINGLE_DOT = Pattern.compile("\\.");
