@@ -14,7 +14,7 @@ public class Plugin {
     public static void main(String[] args) throws IOException {
         CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in);
 
-        newBuilder()
+        CodeGeneratorResponse.newBuilder() // Intellij wants to hide reference to CodeGeneratorResponse here
                 .addAllFile(modifications(request))
                 .build()
                 .writeTo(System.out);
@@ -28,20 +28,19 @@ public class Plugin {
         return request
                 .getFileToGenerateList()
                 .stream()
-                .flatMap(filename -> modifications(filename, lookup.get(filename), request))
+                .map(lookup::get)
+                .flatMap(Plugin::modifications)
                 .collect(Collectors.toList());
     }
 
-    private static Stream<File> modifications(String filename,
-                                              FileDescriptorProto fileDescriptorProto, CodeGeneratorRequest request) {
+    private static Stream<File> modifications(FileDescriptorProto fileDescriptorProto) {
         return fileDescriptorProto
                 .getMessageTypeList()
                 .stream()
-                .map(descriptorProto -> addInterface(filename, fileDescriptorProto, descriptorProto));
+                .map(descriptorProto -> addInterface(fileDescriptorProto, descriptorProto));
     }
 
-    private static File addInterface(String filename,
-                                     FileDescriptorProto fileDescriptorProto,
+    private static File addInterface(FileDescriptorProto fileDescriptorProto,
                                      DescriptorProto descriptorProto) {
         return File.newBuilder()
                 .setName(fileToModify(fileDescriptorProto, descriptorProto))
