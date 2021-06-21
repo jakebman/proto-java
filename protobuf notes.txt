@@ -31,10 +31,10 @@ Idle question:
 			<protocPlugins> in protobuf-maven-plugin:compile looks ... interesting?
 				https://www.xolstice.org/protobuf-maven-plugin/examples/protoc-plugin.html - docs for that setting
 				Worth playing with this? https://github.com/thesamet/protoc-plugin-in-java - easy dev?
-			SUCCESS! Set up in the https://github.com/jakebman/proto-java/ project:
-			    * One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
-			    * One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
-			    * Voilà! Built!
+        SUCCESS! Set up in the https://github.com/jakebman/proto-java/ project:
+            * One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
+            * One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
+            * Voilà! Built!
 
 
 Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
