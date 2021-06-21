@@ -33,6 +33,12 @@
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
      </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>plugin</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope> <!-- like compile time, but not transitive. Closest I could find to "is needed by a plugin"-->
+    </dependency>
   </dependencies>
 
   <build>
@@ -56,7 +62,16 @@
           </execution>
         </executions>
         <configuration>
-          <protocArtifact>com.google.protobuf:protoc:3.4.0:exe:${os.detected.classifier}</protocArtifact>
+          <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
+          <protocPlugins>
+            <protocPlugin>
+              <id>jakeProtoPlugin</id>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>plugin</artifactId>
+              <version>${project.version}</version>
+              <mainClass>com.boeckerman.jake.protobuf.Plugin</mainClass>
+            </protocPlugin>
+          </protocPlugins>
         </configuration>
       </plugin>
     </plugins>
