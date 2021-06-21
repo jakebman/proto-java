@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,13 +59,25 @@ public class Plugin {
      */
     private static String fileToModify(FileDescriptorProto fileDescriptorProto,
                                        DescriptorProto descriptorProto) {
+
         FileOptions options = fileDescriptorProto.getOptions();
-        String javaPackage = options.hasJavaPackage() ? options.getJavaPackage() : fileDescriptorProto.getPackage();
-        List<String> strings = new ArrayList<>(Arrays.asList(javaPackage.split("\\.")));
-        strings.add(descriptorProto.getName() + ".java");
-        return strings.stream().filter(StringUtils::isNotEmpty).collect(Collectors.joining("/"));
-        //sometimes the first part of the path is the empty string. So we can't do this:
-        //return String.join("/", strings);
+        StringBuilder out = new StringBuilder();
+        if (options.hasJavaPackage()) {
+            out.append(packageToPath(options.getJavaPackage()));
+        } else if (fileDescriptorProto.hasPackage()) {
+            out.append(packageToPath(fileDescriptorProto.getPackage()));
+        }
+        if(out.length() > 0) {
+            out.append("/");
+        }
+        out.append(descriptorProto.getName())
+                .append(".java");
+        return out.toString();
+    }
+
+    private static final Pattern singleDot = Pattern.compile("\\.");
+    private static String packageToPath(String javaPackage) {
+        return singleDot.matcher(javaPackage).replaceAll("/");
     }
 
 }
