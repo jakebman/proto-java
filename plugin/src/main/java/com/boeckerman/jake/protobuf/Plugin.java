@@ -1,8 +1,5 @@
 package com.boeckerman.jake.protobuf;
 
-import com.google.protobuf.compiler.PluginProtos;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -48,9 +45,17 @@ public class Plugin {
                                      DescriptorProto descriptorProto) {
         return File.newBuilder()
                 .setName(fileToModify(fileDescriptorProto, descriptorProto))
-                .setInsertionPoint("message_implements:" + descriptorProto.getName())
+                .setInsertionPoint("message_implements:" + getInsertionPointFor(descriptorProto, fileDescriptorProto))
                 .setContent("java.io.Serializable, // LOL, I can modify! -Jake")
                 .build();
+    }
+
+    private static String getInsertionPointFor(DescriptorProto descriptorProto,
+                                               FileDescriptorProto fileDescriptorProto) {
+        if(fileDescriptorProto.hasPackage()){
+            return fileDescriptorProto.getPackage() + "." + descriptorProto.getName();
+        }
+        return descriptorProto.getName();
     }
 
     /* TODO: how do we behave correctly in the following situations
