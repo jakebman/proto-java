@@ -1,0 +1,49 @@
+
+
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.boeckerman.jake.protobuf";
+package boeckerman.jake.protobuf; // proto packages don't care for reverse url phrasing
+
+
+//Changes that break downstream Java code:
+//option java_multiple_files = ...; // default false
+//option java_package = "..."; // if unspecified, uses proto package declaration
+//option java_outer_classname = "..."; // only if java_multiple_files is not true
+//package madeupProtoPackage.jake.protobuf; //(only if java_package is not set)
+
+
+
+message Person {
+  message Nested{ int32 field=1;}
+  string name = 1;
+  //  NON-COMPATIBLE CHANGE, conflicts on 1 with name, and is a different type
+  //  required int32 name = 1;
+  int32 id = 2;
+  //  required int32 newid = 2;
+  repeated string description = 45;
+  optional string email = 3;
+  optional Nested nested = 4;
+  map<int32, string> things = 6;
+
+}
+
+//added at source: skipped at destintiation
+// removed from source: destination does not complain, *unless destination believes field is required*
+
+// More flexible than kryo - yes. Allows fields to be added and removed (as long as certain constraints are met)
+
+message Person2 {
+  optional Person foo = 32;
+  message Nested{ int32 field=1;}
+   string name = 1;
+  int32 id = 2;
+  //  required int32 newid = 2;
+  repeated string description = 100000000;
+  optional string email = 3;
+  optional Nested nested = 4;
+  optional bytes shortCutForCOmplexSubFieldStillUsingKryo = 66;
+  map<int32, string> things = 6;
+
+}
+
