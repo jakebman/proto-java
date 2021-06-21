@@ -18,13 +18,13 @@ public class Plugin {
                 .addAllFile(modifications(request))
                 .build()
                 .writeTo(System.out);
-
     }
 
     private static List<File> modifications(CodeGeneratorRequest request) {
         Map<String, FileDescriptorProto> lookup = new HashMap<>();
         request.getProtoFileList()
                 .forEach(fileDescriptorProto -> lookup.put(fileDescriptorProto.getName(), fileDescriptorProto));
+
         return request
                 .getFileToGenerateList()
                 .stream()
@@ -51,7 +51,7 @@ public class Plugin {
 
     private static String getInsertionPointFor(DescriptorProto descriptorProto,
                                                FileDescriptorProto fileDescriptorProto) {
-        if(fileDescriptorProto.hasPackage()){
+        if (fileDescriptorProto.hasPackage()) {
             return fileDescriptorProto.getPackage() + "." + descriptorProto.getName();
         }
         return descriptorProto.getName();
@@ -63,25 +63,26 @@ public class Plugin {
      */
     private static String fileToModify(FileDescriptorProto fileDescriptorProto,
                                        DescriptorProto descriptorProto) {
-
         FileOptions options = fileDescriptorProto.getOptions();
         StringBuilder out = new StringBuilder();
+
         if (options.hasJavaPackage()) {
             out.append(packageToPath(options.getJavaPackage()));
         } else if (fileDescriptorProto.hasPackage()) {
             out.append(packageToPath(fileDescriptorProto.getPackage()));
         }
-        if(out.length() > 0) {
+        if (out.length() > 0) {
             out.append("/");
         }
+
         out.append(descriptorProto.getName())
                 .append(".java");
         return out.toString();
     }
 
-    private static final Pattern singleDot = Pattern.compile("\\.");
-    private static String packageToPath(String javaPackage) {
-        return singleDot.matcher(javaPackage).replaceAll("/");
-    }
+    private static final Pattern SINGLE_DOT = Pattern.compile("\\.");
 
+    private static String packageToPath(String javaPackage) {
+        return SINGLE_DOT.matcher(javaPackage).replaceAll("/");
+    }
 }
