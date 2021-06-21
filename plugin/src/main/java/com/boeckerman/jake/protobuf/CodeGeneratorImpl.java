@@ -12,7 +12,6 @@ import static com.google.protobuf.compiler.PluginProtos.*;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.*;
 
 public class CodeGeneratorImpl implements CodeGenerator {
-    private static final int SHORT_LIST_TO_SEARCH_QUICKLY = 12;
     private final CodeGeneratorRequest request;
 
     public CodeGeneratorImpl(CodeGeneratorRequest request) {
