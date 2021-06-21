@@ -1,5 +1,7 @@
 package com.boeckerman.jake.protobuf;
 
+import org.apache.commons.lang3.text.WordUtils;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -76,9 +78,20 @@ public class Plugin {
             out.append("/");
         }
 
-        out.append(descriptorProto.getName())
-                .append(".java");
+        if(options.getJavaMultipleFiles()) {
+            out.append(descriptorProto.getName());
+        } else if(options.hasJavaOuterClassname()) {
+            out.append(options.getJavaOuterClassname());
+        } else {
+            out.append(CamelCase(descriptorProto.getName()))
+                    .append("OuterClass");
+        }
+        out.append(".java");
         return out.toString();
+    }
+
+    private static String CamelCase(String name_with_underscores) {
+        return WordUtils.capitalizeFully(name_with_underscores, '_');
     }
 
     private static final Pattern SINGLE_DOT = Pattern.compile("\\.");

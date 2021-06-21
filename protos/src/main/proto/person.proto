@@ -2,9 +2,17 @@
 syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "com.boeckerman.jake.protobuf";
+package boeckerman.jake.protobuf; // proto packages don't care for reverse url phrasing
+
+//Changes that break downstream Java code:
+//option java_multiple_files = ...; // default false
+//option java_package = "..."; // if unspecified, uses proto package declaration
+//option java_outer_classname = "..."; // only if java_multiple_files is not true
+//package madeupProtoPackage.jake.protobuf; //(only if java_package is not set)
+
 message Person {
   string name = 1;
   int32 id = 2;
-  string email = 3;
+  optional string email = 3;
 }
 
