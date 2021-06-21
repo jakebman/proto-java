@@ -31,6 +31,10 @@ Idle question:
 			<protocPlugins> in protobuf-maven-plugin:compile looks ... interesting?
 				https://www.xolstice.org/protobuf-maven-plugin/examples/protoc-plugin.html - docs for that setting
 				Worth playing with this? https://github.com/thesamet/protoc-plugin-in-java - easy dev?
+			SUCCESS! Set up in the https://github.com/jakebman/proto-java/ project:
+			    * One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
+			    * One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
+			    * Voilà! Built!
 
 
 Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
@@ -115,8 +119,10 @@ Proto Java Nano:
 	https://www.xolstice.org/protobuf-maven-plugin/compile-javanano-mojo.html
 		supported by maven plugin I like, but:
 		This plugin goal has been deprecated:
-		JavaNano has been deprecated in favour of Java Lite. Please see Protocol Buffers documentation for details.
-Java Lite: 
+		>JavaNano has been deprecated in favour of Java Lite. Please see Protocol Buffers documentation for details.
+Java Lite:
+    Triggered when generating java code optimize_for = LITE_RUNTIME
+    Notes in optimize_for
 
 Java Notes: Java parts of proto notes, plus https://developers.google.com/protocol-buffers/docs/reference/java-generated
 	compiler is program. Easier to run via maven plugin, but worth knowing what plugin does.
@@ -124,7 +130,7 @@ Java Notes: Java parts of proto notes, plus https://developers.google.com/protoc
 		java_multiple_files // want true for clarity
 		java_outer_classname // no opinion right now. Default "XxxOuterClass". Has the descriptions
 		
-	Names derrived via obvious snake_case to lowerCamelCase or UpperCammelCase as appropriate.
+	Names derived via obvious snake_case to lowerCamelCase or UpperCamelCase as appropriate.
 		
 	https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/util/package-summary
 	Jake prefers multiple files for clarity. 
@@ -137,7 +143,7 @@ Things that can change in a protobuf message that are valid/invalid (TODO: code 
 	Things you can do to a protobuf message:
 		Change the name of your message (reminder: do the refactor naming otherwise you might have dangling name reference in another message)
 		Change the name of a field (as long as you don't care about JSON serialization)
-		Change the name of an enum (same caveate as field name - goozles JSON serialization)
+		Change the name of an enum (same caveat as field name - goozles JSON serialization)
 		Add non-required fields with non-conflicting ids 
 		Add a new field into a `oneof` (creation of `oneof` is covered by "add a field")
 		Add/remove `[packed=true]` from a repeated field (nb: this flag is default on for scalar fields in proto3). 
