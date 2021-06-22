@@ -6,8 +6,8 @@ POJOs Plan:
 Idle question:
 	TODO: abilty to move builder to not be nested? -Probably not (because private access), but?
 	TODO: how to tell in proto3 if value was sent/notSent if the value assigned was default?
-	    Can we do something with `optional`?
-	    Or is this a meaningless question?
+		Can we do something with `optional`?
+		Or is this a meaningless question?
 	Do reserved enum values/names generate java enum entries? Seems improbable, because there's no correlation for name/value relation. But maybe RESERVED_33, RESERVED_34?
 	https://developers.google.com/protocol-buffers/docs/proto3#importing_definitions - when searching for messages, how hard does the compiler need to care about them?
 		Presumably java fails because you need a fully-qualified type name, and if you don't have the message, then you can't introspect the java package.
@@ -34,10 +34,10 @@ Idle question:
 			<protocPlugins> in protobuf-maven-plugin:compile looks ... interesting?
 				https://www.xolstice.org/protobuf-maven-plugin/examples/protoc-plugin.html - docs for that setting
 				Worth playing with this? https://github.com/thesamet/protoc-plugin-in-java - easy dev?
-        SUCCESS! Set up in the https://github.com/jakebman/proto-java/ project:
-            * One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
-            * One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
-            * Voilà! Built!
+		SUCCESS! Set up in the https://github.com/jakebman/proto-java/ project:
+			* One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
+			* One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
+			* Voilà! Built!
 
 
 Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
@@ -124,8 +124,8 @@ Proto Java Nano:
 		This plugin goal has been deprecated:
 		>JavaNano has been deprecated in favour of Java Lite. Please see Protocol Buffers documentation for details.
 Java Lite:
-    Triggered when generating java code optimize_for = LITE_RUNTIME
-    Notes in optimize_for
+	Triggered when generating java code optimize_for = LITE_RUNTIME
+	Notes in optimize_for
 
 Java Notes: Java parts of proto notes, plus https://developers.google.com/protocol-buffers/docs/reference/java-generated
 	compiler is program. Easier to run via maven plugin, but worth knowing what plugin does.
@@ -176,60 +176,60 @@ Things that can change in a protobuf message that are valid/invalid (TODO: code 
 				Add required-ness to the reader first (and assumedly, the writer isn't always sending that field)
 					same logic as above
 				adding a new enum value to a required enum field will break parsers (proto3 does not have required)
-				    Since this isn't something you can tell at the enum definition, just don't do it all.
+					Since this isn't something you can tell at the enum definition, just don't do it all.
 
 Incompatibility musings:
-    "A message is always compatible with itself" has two consequences:
-        If a message definition never changes, you never need to worry about compatibility
-        Making an incompatible change is indistinguishable with making a different message type.
-            (Justified by the contrapositive of the top statement, which is "If two message definitions are incompatible, they are not the same {equal via the identity under which "itself" is defined} message definitions")
-    Because the edit distance of two files (of fixed finite sizes) is not infinite, any two independent message definitions could be considered to be (incompatible, most likely) "changes" applied to the other.
-    Several types of incompatibility exist. (examples will use Message A as the "before" and Message B as the "after"):
-        Making this change could produce a parse error in the wire format (Hard error. No fix but to change them)
-        Sending these messages back an forth *will not* produce a parse error in the wire format *and you should be very concerned about that!*
-            These differently-named messages are 100% wire compatible, but it still might be a *very bad* idea to send one to the other
-                        These messages overlap on names and types (so if they have the same message name, their types are API compatible), but don't actually transfer the fields between themselves:
-                            Message A:
-                                optional int32 a = 1;
-                                optional int32 b = 2;
-                            Message B:
-                                optional int32 a = 3;
-                                optional int32 b = 4;
+	"A message is always compatible with itself" has two consequences:
+		If a message definition never changes, you never need to worry about compatibility
+		Making an incompatible change is indistinguishable with making a different message type.
+			(Justified by the contrapositive of the top statement, which is "If two message definitions are incompatible, they are not the same {equal via the identity under which "itself" is defined} message definitions")
+	Because the edit distance of two files (of fixed finite sizes) is not infinite, any two independent message definitions could be considered to be (incompatible, most likely) "changes" applied to the other.
+	Several types of incompatibility exist. (examples will use Message A as the "before" and Message B as the "after"):
+		Making this change could produce a parse error in the wire format (Hard error. No fix but to change them)
+		Sending these messages back an forth *will not* produce a parse error in the wire format *and you should be very concerned about that!*
+			These differently-named messages are 100% wire compatible, but it still might be a *very bad* idea to send one to the other
+						These messages overlap on names and types (so if they have the same message name, their types are API compatible), but don't actually transfer the fields between themselves:
+							Message A:
+								optional int32 a = 1;
+								optional int32 b = 2;
+							Message B:
+								optional int32 a = 3;
+								optional int32 b = 4;
 
-                        These messages don't have an overlap at all (You should be *very* concerned, because these *make no sense* together, despite producing no wire errors)
-                            Message A:
-                                optional int32 a = 1;
-                                optional int32 b = 2;
-                            Message B:
-                                optional string c = 3;
-                                optional string d = 4;
-        Source code/runtime issues in a projected language:
-            Making this change could produce a compile-time error in client code (Warn/info. You'll see this quickly from other tools)
-                Removing a field in java (which you use in the client code). Client compilation will fail because the old-named getFoo method is missing (now named getBar which is not "the same method" in java-land)
-            Making this change could produce a link-time error in client code (Ditto. Mostly C++. Can probably call this a compile-time error in C++, too.)
-            Making this change could produce a runtime error in client code (Error/warn depending on might/could/will chances)
-                Removing a field in Java code (which you use in client code), *without* recompiling the client code (you just drop the new .jar in your classpath and call it a day).  Java will runtime error with MethodNotFoundException.
-        Making this change could produce a logic error in client code (Debug/Error)
-            Removing this field from the wire-writer only, mean that you've got client code that *literally never runs* Do yourself a favor and remove it from the wire-reader, too.
-            Changing these bytes to string removes the base64 encoding on this field's JSON representation. If your client reads via json, it might accidentally use the base64-encoded value instead of the unicode-encoded string value. (Ignore/Hard Error)
-    Changes, evaluated:
-        "The wire type of this field id is *different*". Hard Error..
-            Literally impossible to resolve unless your target language is willing to do stupid things like convert obviously-numeric values to strings, or automagically interpret a struct as an enumeration value. Even then, very likely to cause logic errors.
-        The name of this field id is changed, but retains the correct type. WARN.
-            The bytes on the wire don't care. Target language projections might care. Separate wire-writer/wire-reader won't care.
-            Json serialization *definitely* cares
-        Json notation changes. Warn/info
-            Wire format doesn't care.
-            Json does care.
-            Some code you write might care. Depends on your logic
-        Reader/Writer vs Writer/Reader changes:
-            Some changes are SUPER compatible if all your wire-writers start making them first
-                Removing an already-optional field. Your wire-readers are already prepared to handle this field being missing
-            Others are SUPER compatible if all your wire-readers start making them first
-                readers expecting a new field (and accepting the default value) *before* the writers start adding it? Super Compatible.
-        Added field. Info
-            Very few things would care.
-            Heads up about older proto3 dropping
+						These messages don't have an overlap at all (You should be *very* concerned, because these *make no sense* together, despite producing no wire errors)
+							Message A:
+								optional int32 a = 1;
+								optional int32 b = 2;
+							Message B:
+								optional string c = 3;
+								optional string d = 4;
+		Source code/runtime issues in a projected language:
+			Making this change could produce a compile-time error in client code (Warn/info. You'll see this quickly from other tools)
+				Removing a field in java (which you use in the client code). Client compilation will fail because the old-named getFoo method is missing (now named getBar which is not "the same method" in java-land)
+			Making this change could produce a link-time error in client code (Ditto. Mostly C++. Can probably call this a compile-time error in C++, too.)
+			Making this change could produce a runtime error in client code (Error/warn depending on might/could/will chances)
+				Removing a field in Java code (which you use in client code), *without* recompiling the client code (you just drop the new .jar in your classpath and call it a day).  Java will runtime error with MethodNotFoundException.
+		Making this change could produce a logic error in client code (Debug/Error)
+			Removing this field from the wire-writer only, mean that you've got client code that *literally never runs* Do yourself a favor and remove it from the wire-reader, too.
+			Changing these bytes to string removes the base64 encoding on this field's JSON representation. If your client reads via json, it might accidentally use the base64-encoded value instead of the unicode-encoded string value. (Ignore/Hard Error)
+	Changes, evaluated:
+		"The wire type of this field id is *different*". Hard Error..
+			Literally impossible to resolve unless your target language is willing to do stupid things like convert obviously-numeric values to strings, or automagically interpret a struct as an enumeration value. Even then, very likely to cause logic errors.
+		The name of this field id is changed, but retains the correct type. WARN.
+			The bytes on the wire don't care. Target language projections might care. Separate wire-writer/wire-reader won't care.
+			Json serialization *definitely* cares
+		Json notation changes. Warn/info
+			Wire format doesn't care.
+			Json does care.
+			Some code you write might care. Depends on your logic
+		Reader/Writer vs Writer/Reader changes:
+			Some changes are SUPER compatible if all your wire-writers start making them first
+				Removing an already-optional field. Your wire-readers are already prepared to handle this field being missing
+			Others are SUPER compatible if all your wire-readers start making them first
+				readers expecting a new field (and accepting the default value) *before* the writers start adding it? Super Compatible.
+		Added field. Info
+			Very few things would care.
+			Heads up about older proto3 dropping
 
 
 
