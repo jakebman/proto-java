@@ -6,6 +6,9 @@ POJOs Plan:
 Idle question:
 	TODO: abilty to move builder to not be nested? -Probably not (because private access), but?
 	TODO: how to tell in proto3 if value was sent/notSent if the value assigned was default?
+	    Can we do something with `optional`?
+	    Or is this a meaningless question?
+	Do reserved enum values/names generate java enum entries? Seems improbable, because there's no correlation for name/value relation. But maybe RESERVED_33, RESERVED_34?
 	https://developers.google.com/protocol-buffers/docs/proto3#importing_definitions - when searching for messages, how hard does the compiler need to care about them?
 		Presumably java fails because you need a fully-qualified type name, and if you don't have the message, then you can't introspect the java package.
 		Or is the failure in `import public`?
@@ -141,7 +144,7 @@ Things that can change in a protobuf message that are valid/invalid (TODO: code 
 		Plus, search for "Backwards-compatibility" in that whole doc.
 	My interpretations of other sources and such are below
 	Things you can do to a protobuf message:
-		Change the name of your message (reminder: do the refactor naming otherwise you might have dangling name reference in another message)
+		Change the name of your message (reminder: change the name in all use cases. Use a refactor tool if you have one. This is only so the rename doesn't make protoc choke. Once the new name compiles, code compiled with the old name will still be able to read messages written under the new name and vice-versa. This even applies for nested messages. ex: Message B has a member of type A. Type A is renamed to A1. Message B code still references type A, and will properly read (messages encoded by) Message B code which has been updated to use A1 instead.)
 		Change the name of a field (as long as you don't care about JSON serialization)
 		Change the name of an enum (same caveat as field name - goozles JSON serialization)
 		Add non-required fields with non-conflicting ids 
@@ -159,7 +162,10 @@ Things that can change in a protobuf message that are valid/invalid (TODO: code 
 			> For embedded message fields, the parser merges multiple instances of the same field, as if with the Message::MergeFrom method – that is, all singular scalar fields in the latter instance replace those in the former, singular embedded messages are merged, and repeated fields are concatenated. [Further interesting details elided]
 			https://developers.google.com/protocol-buffers/docs/encoding#optional
 		add >1 existing fields into a (new or existing) oneof (unless you're 100% POSITIVE that it was already basically a oneof. See top-level change citation)
-		add/remove fields in a oneof. 
+		add/remove fields in a oneof.
+		add enum values. Might be okay in some situations, especially proto3 >=3.5 which preserves the enum value. Check your citations. Do not trust this note line.
+		remove enum values. Might be okay... proto3>=3.5 as above. Do not trust this line. Also, use `reserved` notation when removing values. (See idle question above re: generated enums for reserved values)
+		permute enum values (swap the values of two enums). No way to make this work and not break everything.
 		proto2-only:
 			something about maps is okay. Check the docs. I don't care. I'm proto3 -Jake
 			mucking with default values is weird (proto3 defaults are the 0 for the type)
@@ -169,7 +175,8 @@ Things that can change in a protobuf message that are valid/invalid (TODO: code 
 					TODO: Citation.
 				Add required-ness to the reader first (and assumedly, the writer isn't always sending that field)
 					same logic as above
-				adding a new enum value to a required field will break parsers (proto3 does not have required)
+				adding a new enum value to a required enum field will break parsers (proto3 does not have required)
+				    Since this isn't something you can tell at the enum definition, just don't do it all.
 
 Readings:
 	
