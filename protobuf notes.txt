@@ -178,6 +178,61 @@ Things that can change in a protobuf message that are valid/invalid (TODO: code 
 				adding a new enum value to a required enum field will break parsers (proto3 does not have required)
 				    Since this isn't something you can tell at the enum definition, just don't do it all.
 
+Incompatibility musings:
+    "A message is always compatible with itself" has two consequences:
+        If a message definition never changes, you never need to worry about compatibility
+        Making an incompatible change is indistinguishable with making a different message type.
+            (Justified by the contrapositive of the top statement, which is "If two message definitions are incompatible, they are not the same {equal via the identity under which "itself" is defined} message definitions")
+    Because the edit distance of two files (of fixed finite sizes) is not infinite, any two independent message definitions could be considered to be (incompatible, most likely) "changes" applied to the other.
+    Several types of incompatibility exist. (examples will use Message A as the "before" and Message B as the "after"):
+        Making this change could produce a parse error in the wire format (Hard error. No fix but to change them)
+        Sending these messages back an forth *will not* produce a parse error in the wire format *and you should be very concerned about that!*
+            These differently-named messages are 100% wire compatible, but it still might be a *very bad* idea to send one to the other
+                        These messages overlap on names and types (so if they have the same message name, their types are API compatible), but don't actually transfer the fields between themselves:
+                            Message A:
+                                optional int32 a = 1;
+                                optional int32 b = 2;
+                            Message B:
+                                optional int32 a = 3;
+                                optional int32 b = 4;
+
+                        These messages don't have an overlap at all (You should be *very* concerned, because these *make no sense* together, despite producing no wire errors)
+                            Message A:
+                                optional int32 a = 1;
+                                optional int32 b = 2;
+                            Message B:
+                                optional string c = 3;
+                                optional string d = 4;
+        Source code/runtime issues in a projected language:
+            Making this change could produce a compile-time error in client code (Warn/info. You'll see this quickly from other tools)
+                Removing a field in java (which you use in the client code). Client compilation will fail because the old-named getFoo method is missing (now named getBar which is not "the same method" in java-land)
+            Making this change could produce a link-time error in client code (Ditto. Mostly C++. Can probably call this a compile-time error in C++, too.)
+            Making this change could produce a runtime error in client code (Error/warn depending on might/could/will chances)
+                Removing a field in Java code (which you use in client code), *without* recompiling the client code (you just drop the new .jar in your classpath and call it a day).  Java will runtime error with MethodNotFoundException.
+        Making this change could produce a logic error in client code (Debug/Error)
+            Removing this field from the wire-writer only, mean that you've got client code that *literally never runs* Do yourself a favor and remove it from the wire-reader, too.
+            Changing these bytes to string removes the base64 encoding on this field's JSON representation. If your client reads via json, it might accidentally use the base64-encoded value instead of the unicode-encoded string value. (Ignore/Hard Error)
+    Changes, evaluated:
+        "The wire type of this field id is *different*". Hard Error..
+            Literally impossible to resolve unless your target language is willing to do stupid things like convert obviously-numeric values to strings, or automagically interpret a struct as an enumeration value. Even then, very likely to cause logic errors.
+        The name of this field id is changed, but retains the correct type. WARN.
+            The bytes on the wire don't care. Target language projections might care. Separate wire-writer/wire-reader won't care.
+            Json serialization *definitely* cares
+        Json notation changes. Warn/info
+            Wire format doesn't care.
+            Json does care.
+            Some code you write might care. Depends on your logic
+        Reader/Writer vs Writer/Reader changes:
+            Some changes are SUPER compatible if all your wire-writers start making them first
+                Removing an already-optional field. Your wire-readers are already prepared to handle this field being missing
+            Others are SUPER compatible if all your wire-readers start making them first
+                readers expecting a new field (and accepting the default value) *before* the writers start adding it? Super Compatible.
+        Added field. Info
+            Very few things would care.
+            Heads up about older proto3 dropping
+
+
+
 Readings:
 	
 	https://spring.io/blog/2015/03/22/using-google-protocol-buffers-with-spring-mvc-based-rest-services links to github too
