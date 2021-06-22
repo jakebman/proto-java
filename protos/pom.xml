@@ -62,18 +62,38 @@
           </execution>
         </executions>
         <configuration>
+          <!-- Common protoc settings go here. If you want to modify how the plugin is used,
+                see the profile usePlugin below, which is active by default -->
           <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
-          <protocPlugins>
-            <protocPlugin>
-              <id>jakeProtoPlugin</id>
-              <groupId>${project.groupId}</groupId>
-              <artifactId>plugin</artifactId>
-              <version>${project.version}</version>
-              <mainClass>com.boeckerman.jake.protobuf.Plugin</mainClass>
-            </protocPlugin>
-          </protocPlugins>
         </configuration>
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>useCustomProtocPlugin</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.xolstice.maven.plugins</groupId>
+            <artifactId>protobuf-maven-plugin</artifactId>
+            <configuration>
+              <protocPlugins>
+                <protocPlugin>
+                  <id>jakeProtoPlugin</id>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>plugin</artifactId>
+                  <version>${project.version}</version>
+                  <mainClass>com.boeckerman.jake.protobuf.Plugin</mainClass>
+                </protocPlugin>
+              </protocPlugins>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
