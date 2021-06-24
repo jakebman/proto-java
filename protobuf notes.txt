@@ -1,4 +1,5 @@
 TOP LEVEL WARNING: USE PROTO3 of versions >=3.5!!! (allows preservation of unknown fields https://developers.google.com/protocol-buffers/docs/proto3#unknowns)
+"Protocol Buffers are not designed to handle large messages. As a general rule of thumb, if you are dealing in messages larger than a megabyte each, it may be time to consider an alternate strategy." https://developers.google.com/protocol-buffers/docs/techniques#large-data
 
 POJOs Plan:
 	https://github.com/beeceej/protoform
@@ -24,13 +25,17 @@ Idle question:
 			We can just write a program that std-in's the request, and std-out's certain interfaces
 			And use the `// @@protoc_insertion_point` mechanism
 			Which is documented here: https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins
-			I can see every one of these in the generated .java files:
+			I can see every one of these in the generated .java files. They match https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins
 				builder_implements:<messasge ID - uncertain if this is message or java class id>
 				builder_scope:<messasge ID - uncertain if this is message or java class id>
 				class_scope:<messasge ID - uncertain if this is message or java class id>
+					docs indicate that the "class" here is only ever a message class
 				interface_extends:<messasge ID - uncertain if this is message or java class id>
-				message_implements:<messasge ID - uncertain if this is message or java class id>
+					Not mentioned in the docs.
+				message_implements:<messasge ID - uncertain if this is message or java class id> 
 				outer_class_scope
+				enum_scope:TYPENAME
+				    In the docs, but I did not see. Probably because I didn't generate an enum when I was doing this analysis.
 			<protocPlugins> in protobuf-maven-plugin:compile looks ... interesting?
 				https://www.xolstice.org/protobuf-maven-plugin/examples/protoc-plugin.html - docs for that setting
 				Worth playing with this? https://github.com/thesamet/protoc-plugin-in-java - easy dev?
@@ -57,6 +62,7 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 		16-2047 take 2
 		Total range: 1-(2^29 -1), excluding 19xxx b/c reserved (FieldDescriptor::kFirstReservedNumber)
 	only real specifier is `repeated`. No optional, No required.
+	"Don't go looking for facilities similar to class inheritance, though – protocol buffers don't do that." - https://developers.google.com/protocol-buffers/docs/javatutorial
 	default value is never sent over the wire: https://developers.google.com/protocol-buffers/docs/proto3#default
 	`required` is not a thing in proto3, ditto `optional`
 	enum:
@@ -74,6 +80,7 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 		Relative imports seem to work: https://www.reddit.com/r/AskProgramming/comments/ke84j0/protobuf_java_and_imports_what_to_do/gg1fvb4?utm_source=share&utm_medium=web2x&context=3
 	Nested messages referenced like in java. Java impl as nested classes, so nice parallel.
 	Dynamic choice of message parse: https://developers.google.com/protocol-buffers/docs/proto3#any
+		Needs a https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/TypeRegistry or the JsonTypeRegistry to understand types.  *Only types added to the registry will be understood!*
 	oneof:
 		components cannot be `repeated`. (proto2: `required` is also likely dumb)
 		last component read from the wire is the winner
@@ -97,7 +104,7 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 		"Wrapper types" preserve null?
 		Some default behaviors are overridable: https://developers.google.com/protocol-buffers/docs/proto3#json_options
 	options:
-		levels:
+		can be defined at multiple levels:
 			file
 			message
 			field
@@ -134,6 +141,12 @@ Java Notes: Java parts of proto notes, plus https://developers.google.com/protoc
 		java_outer_classname // no opinion right now. Default "XxxOuterClass". Has the descriptions
 		
 	Names derived via obvious snake_case to lowerCamelCase or UpperCamelCase as appropriate.
+	Skimmable serialization/deserialization calls: https://developers.google.com/protocol-buffers/docs/javatutorial#parsing-and-serialization
+		byte[] toByteArray()
+		static Person parseFrom(byte[] data)
+		void writeTo(OutputStream output)
+		static Person parseFrom(InputStream input)
+	[CodedOutputStream](https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/CodedOutputStream.html) for 
 		
 	https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/util/package-summary
 	Jake prefers multiple files for clarity. 
@@ -186,6 +199,8 @@ Incompatibility musings:
 	Because the edit distance of two files (of fixed finite sizes) is not infinite, any two independent message definitions could be considered to be (incompatible, most likely) "changes" applied to the other.
 	Several types of incompatibility exist. (examples will use Message A as the "before" and Message B as the "after"):
 		Making this change could produce a parse error in the wire format (Hard error. No fix but to change them)
+		Round-trip ability is compromised.
+			basically just the proto3 < 3.5 thing.
 		Sending these messages back an forth *will not* produce a parse error in the wire format *and you should be very concerned about that!*
 			These differently-named messages are 100% wire compatible, but it still might be a *very bad* idea to send one to the other
 						These messages overlap on names and types (so if they have the same message name, their types are API compatible), but don't actually transfer the fields between themselves:
@@ -213,28 +228,44 @@ Incompatibility musings:
 			Removing this field from the wire-writer only, mean that you've got client code that *literally never runs* Do yourself a favor and remove it from the wire-reader, too.
 			Changing these bytes to string removes the base64 encoding on this field's JSON representation. If your client reads via json, it might accidentally use the base64-encoded value instead of the unicode-encoded string value. (Ignore/Hard Error)
 	Changes, evaluated:
+		Everything in https://developers.google.com/protocol-buffers/docs/javatutorial#extending-a-protocol-buffer
 		"The wire type of this field id is *different*". Hard Error..
 			Literally impossible to resolve unless your target language is willing to do stupid things like convert obviously-numeric values to strings, or automagically interpret a struct as an enumeration value. Even then, very likely to cause logic errors.
-		The name of this field id is changed, but retains the correct type. WARN.
+		The name of this field id is changed, but retains the correct type. Info. ERROR if JSON.
 			The bytes on the wire don't care. Target language projections might care. Separate wire-writer/wire-reader won't care.
-			Json serialization *definitely* cares
-		Json notation changes. Warn/info
+			Json serialization *definitely* cares.
+			Client code cares if you change this on them. 
+		The id of this field name is changed, but retains the correct type. Info. 
+			Client code sees these as the same (assuming same message name)
+		Message name changed. Strange.
+			Only really applicable if there's only one message in the .proto files being compared (otherwise, no way to correlate which-of-two messages in the first file relate to which-of-two message in the second file)
+			Client code cares. Compiled name will be different.
+		Package name changed. Strange.
+			Not a good idea - breaks client *proto* code too.
+			Client code potentially affected.
+		Added field id. Debug. Warn if proto3 < 3.5. Error if new field is required. Error if id was previously reserved.
+			Very few things would care about non-required.
+			Heads up about older proto3 dropping unknown data.
+			see also: changes to id of a field name
+		Removed required field id. Error.
+		Removed non-required field id. Info. Warn if not reserved in new message.
+			(Completeness might require ERROR if not reserved, because remove-then-add might make a two-step incompatible change not emit an error from this analysis)
+		Remove reserved-ness anywhere. Error.
+		Language-specific settings changed. Client Code affected.
+		Json notation changes. Warn. Flag to ignore json issues?
 			Wire format doesn't care.
 			Json does care.
-			Some code you write might care. Depends on your logic
+			Some code you write might care; especially if you write JSON to someone else. Depends on your logic
 		Reader/Writer vs Writer/Reader changes:
 			Some changes are SUPER compatible if all your wire-writers start making them first
 				Removing an already-optional field. Your wire-readers are already prepared to handle this field being missing
 			Others are SUPER compatible if all your wire-readers start making them first
 				readers expecting a new field (and accepting the default value) *before* the writers start adding it? Super Compatible.
-		Added field. Info
-			Very few things would care.
-			Heads up about older proto3 dropping
 
 
 
 Readings:
+	Spring compatibility: https://spring.io/blog/2015/03/22/using-google-protocol-buffers-with-spring-mvc-based-rest-services links to github too
+	Maven plugin: https://www.xolstice.org/protobuf-maven-plugin/compile-mojo.html
+	.proto file style guide (proto2: required and groups are no-nos): https://developers.google.com/protocol-buffers/docs/style
 	
-	https://spring.io/blog/2015/03/22/using-google-protocol-buffers-with-spring-mvc-based-rest-services links to github too
-	https://www.xolstice.org/protobuf-maven-plugin/compile-mojo.html
-		
