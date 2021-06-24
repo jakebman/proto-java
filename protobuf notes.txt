@@ -13,6 +13,8 @@ Idle question:
 	https://developers.google.com/protocol-buffers/docs/proto3#importing_definitions - when searching for messages, how hard does the compiler need to care about them?
 		Presumably java fails because you need a fully-qualified type name, and if you don't have the message, then you can't introspect the java package.
 		Or is the failure in `import public`?
+	"proto2 enums cannot be used in proto3 syntax."
+	    What, exactly, does this mean? A message written in proto3 syntax cannot reference an enum written in proto2 syntax? If that, why can a proto3 message reference a proto2 message that has an enum? Is there some weird default value rule?  Is that rule that proto3 enums are always expected to be default zero, and proto2 messages choose default differently? Probably this.
 	protobuf-maven-plugin/compile-mojo <writeDescriptorSet>/<attachDescriptorSet>. What do these do? Why not default true? Useful? Not?
 	Is there a way to compare two message schemas and see if they seem like they're the same?
 		Okay. Halting problem. How about just "They conflict at id X, because <reason>"
@@ -32,7 +34,7 @@ Idle question:
 					docs indicate that the "class" here is only ever a message class
 				interface_extends:<messasge ID - uncertain if this is message or java class id>
 					Not mentioned in the docs.
-				message_implements:<messasge ID - uncertain if this is message or java class id> 
+				message_implements:<messasge ID - uncertain if this is message or java class id>
 				outer_class_scope
 				enum_scope:TYPENAME
 				    In the docs, but I did not see. Probably because I didn't generate an enum when I was doing this analysis.
@@ -78,6 +80,8 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 			The other is a static reference: `static final Foo BAZ = BAR;`
 	importing (from arbitrary location?) is not supported in java
 		Relative imports seem to work: https://www.reddit.com/r/AskProgramming/comments/ke84j0/protobuf_java_and_imports_what_to_do/gg1fvb4?utm_source=share&utm_medium=web2x&context=3
+	"In general you should set the --proto_path flag to the root of your project and use fully qualified names for all imports."
+	    "proto2 enums cannot be used in proto3 syntax." in "Idle Questions", above
 	Nested messages referenced like in java. Java impl as nested classes, so nice parallel.
 	Dynamic choice of message parse: https://developers.google.com/protocol-buffers/docs/proto3#any
 		Needs a https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/TypeRegistry or the JsonTypeRegistry to understand types.  *Only types added to the registry will be understood!*
@@ -117,11 +121,11 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 			CODE_SIZE
 			LITE_RUNTIME: link to libprotobuf-lite instead of libprotobuf. No descriptors or reflection. MessageLite interface, not Message interface.
 		java don't care:
-			cc_enable_arenas, objc_class_prefix, 
+			cc_enable_arenas, objc_class_prefix,
 		[deprecated=true] on field: Java: @Deprecated annotation. Good for partial removal before full removal. No protobuf implications.
 		~~ Custom options ~~ : (used by plugins(?)) Uses extensions. The only time the proto2 extensions feature is allowed in proto3. (`extend Description{optional File externalRef=222;}`)
 			https://developers.google.com/protocol-buffers/docs/proto#extensions
-		
+
 
 
 Proto Java Nano:
