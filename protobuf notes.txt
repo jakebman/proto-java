@@ -43,6 +43,7 @@ Idle question:
 			* One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
 			* One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
 			* Voilà! Built!
+			* TODO: figure out how to pass params through protoc to my plugin: https://github.com/protocolbuffers/protobuf/issues/4759
 
 
 Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
