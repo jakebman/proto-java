@@ -45,7 +45,7 @@ public class CodeGeneratorUtils {
 
     private static final Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
     private static String classNameForFile(FileDescriptorProto fileDescriptorProto) {
-        String guess = CamelCase(deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName())); // TODO: compile regex
+        String guess = CamelCase(deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName()));
 
         // minor concern: This might be inefficient.
         // If our program is slow, we should count executions
