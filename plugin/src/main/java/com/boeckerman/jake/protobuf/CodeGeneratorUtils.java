@@ -3,6 +3,7 @@ package com.boeckerman.jake.protobuf;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.google.protobuf.DescriptorProtos.*;
 
@@ -70,16 +71,13 @@ public class CodeGeneratorUtils {
         return SINGLE_DOT.matcher(javaPackage).replaceAll("/");
     }
 
-    // \b is a "word barrier" - zero-width match between a letter and a non-letter
-    // There might be some hilarious interaction between what \b thinks is a letter and what
-    // IsAlphabetic thinks is a letter. Regex on unicode is fun.
-    static final Pattern CAPITALIZABLE_CHARACTER = Pattern.compile("\\b(\\p{IsAlphabetic})");
-    static final Pattern NON_ALPHABETICAL_CHARACTER = Pattern.compile("[^\\p{IsAlphabetic}]+");
+    private static final String NON_ALNUM_CHARACTERS = "[^\\p{Alnum}]+";
+    private static final String ZERO_WIDTH_BETWEEN_DIGIT_AND_LETTER = "(?<=\\p{Digit})(?=\\p{Alpha})";
+    static final Pattern NON_ALPHANUMERIC_CHARACTERS = Pattern.compile(NON_ALNUM_CHARACTERS + "|" + ZERO_WIDTH_BETWEEN_DIGIT_AND_LETTER);
 
     static String CamelCase(String name_with_underscoresOrHyphens) {
-        String nameWithCorrectCaps = CAPITALIZABLE_CHARACTER.matcher(name_with_underscoresOrHyphens)
-                .replaceAll(matchResult -> StringUtils.capitalize(matchResult.group()));
-        String nameWithoutNonCharacters = deleteMatchesOfPattern(NON_ALPHABETICAL_CHARACTER, nameWithCorrectCaps);
-        return nameWithoutNonCharacters;
+        return NON_ALPHANUMERIC_CHARACTERS.splitAsStream(name_with_underscoresOrHyphens)
+                .map(StringUtils::capitalize)
+                .collect(Collectors.joining());
     }
 }
