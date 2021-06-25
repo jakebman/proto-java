@@ -12,7 +12,12 @@ package boeckerman.jake.protobuf; // proto packages don't care for reverse url p
 //option java_outer_classname = "..."; // only if java_multiple_files is not true
 //package madeupProtoPackage.jake.protobuf; //(only if java_package is not set)
 
-
+/**
+  IntelliJ Protocol Buffer language note:
+  When dealing with protos, IntelliJ looks for your protos relative to "Sources Root" folders.
+  And the ../src/main/protos folders are not automatically marked as that.
+  So, heads up - you might need to do that.
+ */
 
 message Person {
   message Nested{ int32 field=1;}
@@ -26,6 +31,16 @@ message Person {
   optional Nested nested = 4;
   map<int32, string> things = 6;
 
+}
+
+
+import "google/protobuf/descriptor.proto";
+
+// the IntelliJ proto editor plugin doesn't like this, but the maven plugin brings it in, so this does compile.
+import "google/protobuf/compiler/plugin.proto";
+message IntrospectionFun {
+  optional google.protobuf.FileDescriptorSet e = 33;
+  google.protobuf.compiler.CodeGeneratorRequest req = 1;
 }
 
 //added at source: skipped at destintiation
