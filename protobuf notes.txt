@@ -65,7 +65,7 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 	only real specifier is `repeated`. No optional, No required.
 	"Don't go looking for facilities similar to class inheritance, though – protocol buffers don't do that." - https://developers.google.com/protocol-buffers/docs/javatutorial
 	default value is never sent over the wire: https://developers.google.com/protocol-buffers/docs/proto3#default
-	`required` is not a thing in proto3, ditto `optional`
+	`required` is not a thing in proto3, ditto `optional` (or is it? https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto#L223)
 	enum:
 		Uses words instead of numeric values, but is otherwise encoded as number (int32; which optimizes small values and de-optimizes negative values)
 		First word is required to be 0. Is also therefore the default.
@@ -106,10 +106,10 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 		Some default behaviors are overridable: https://developers.google.com/protocol-buffers/docs/proto3#json_options
 	options:
 		can be defined at multiple levels:
-			file
-			message
-			field
-			Options can also be written on enum types, enum values, oneof fields, service types, and service methods; however, no useful options currently exist for any of these.
+			file: SUPER DOCS @ https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto#L342
+			message: https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto#L467
+			field: https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto#L535
+			Options can also be written on enum types (...#L636), enum values (#L657), oneof fields(628), service types (671), and service methods (691); however, no useful options currently exist for any of these.
 		java_package: modify package the java source file is generated in
 		java_outer_classname: java class wrapper name
 		java_multiple_files: Builder still nested, but don't generate outer class - use separate classes.
