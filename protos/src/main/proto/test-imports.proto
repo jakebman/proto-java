@@ -1,0 +1,20 @@
+
+syntax="proto3";
+
+/**
+  IntelliJ Protocol Buffer language note:
+  When dealing with protos, IntelliJ looks for your protos relative to "Sources Root" folders.
+  And the ../src/main/protos folders are not automatically marked as that.
+  So, heads up - you might need to do that.
+
+ */
+import "person.proto";
+/**
+  Also, message names are resolved within a package,
+  so we need this package declaration here to use the bare name `Person`
+ */
+package boeckerman.jake.protobuf;
+
+message importer {
+  repeated Person persons = 1;
+}

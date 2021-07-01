@@ -24,7 +24,6 @@ Idle question:
 			https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins
 		Further research:
 			A protobuf plugin follows the rules here: https://developers.google.com/protocol-buffers/docs/reference/cpp/google.protobuf.compiler.plugin.pb which references https://developers.google.com/protocol-buffers/docs/reference/cpp/google.protobuf.descriptor.pb
-			References the plugin.proto from here: https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/compiler/plugin.proto
 			We can just write a program that std-in's the request, and std-out's certain interfaces
 			And use the `// @@protoc_insertion_point` mechanism
 			Which is documented here: https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins
@@ -142,6 +141,11 @@ Java Lite:
 	Notes in optimize_for
 	https://github.com/protocolbuffers/protobuf/blob/master/java/lite.md:
 		>Note that "optimize_for = LITE_RUNTIME" option in proto file is deprecated and will not have any effect any more.
+
+IntelliJ:
+	When dealing with protos, IntelliJ looks for your protos relative to "Sources Root" folders.
+	And the ../src/main/protos folders are not automatically marked as that.
+	So, heads up - you might need to mark src/protos as a sources root
 
 
 

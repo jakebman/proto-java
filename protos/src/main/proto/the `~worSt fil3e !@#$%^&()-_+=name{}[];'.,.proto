@@ -1,0 +1,11 @@
+
+//The worst named file
+syntax="proto3";
+
+import "test-imports.proto";
+
+package boeckerman.jake.protobuf;
+
+message importer3 {
+  repeated importer persons = 1;
+}
