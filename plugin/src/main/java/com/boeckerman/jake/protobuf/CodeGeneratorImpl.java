@@ -1,6 +1,5 @@
 package com.boeckerman.jake.protobuf;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -22,7 +21,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
     public CodeGeneratorResponse generate() {
         return CodeGeneratorResponse.newBuilder()
                 .addAllFile(modifications(request))
-                .setSupportedFeatures(Feature.FEATURE_PROTO3_OPTIONAL_VALUE) // Trivial support - we don't care
+                .setSupportedFeatures(Feature.FEATURE_PROTO3_OPTIONAL_VALUE) // anticipate emphatic support - we want this
                 .build();
     }
 
@@ -31,26 +30,14 @@ public class CodeGeneratorImpl implements CodeGenerator {
         return request
                 .getFileToGenerateList() // list of .proto file names to work with
                 .stream()
-                .map(generateLookupMapFor(request.getProtoFileList()))
+                .map(fileNameToProtoFileDescriptorLookup(request.getProtoFileList()))
                 .flatMap(this::modifications)
                 .collect(Collectors.toList());
     }
 
-    private Function<String, FileDescriptorProto> generateLookupMapFor(List<FileDescriptorProto> protoFileList) {
-//       Will never be useful - too many messages files normally (need library files)
-//        if(protoFileList.size() < SHORT_LIST_TO_SEARCH_QUICKLY) {
-//            return (name) -> {
-//                for(FileDescriptorProto p : protoFileList) {
-//                    if (p.getName().equals(name)) {
-//                        return p;
-//                    }
-//                }
-//                return null;
-//            };
-//        }
-        Map<String, FileDescriptorProto> lookup = new HashMap<>();
-        request.getProtoFileList()
-                .forEach(fileDescriptorProto -> lookup.put(fileDescriptorProto.getName(), fileDescriptorProto));
+    private Function<String, FileDescriptorProto> fileNameToProtoFileDescriptorLookup(List<FileDescriptorProto> protoFileList) {
+        Map<String, FileDescriptorProto> lookup = protoFileList.stream()
+                .collect(Collectors.toMap(FileDescriptorProto::getName, Function.identity()));
         return lookup::get;
     }
 
