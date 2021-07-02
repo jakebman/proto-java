@@ -16,7 +16,7 @@ public class CodeGeneratorUtilsTest extends TestCase {
         assertEquals("SongName1", CamelCase("song_name1"));
         assertEquals("SongName1", CamelCase("song_name_1"));
         assertEquals("MyProto", CamelCase("my_proto"));
-        assertEquals("Embedded3Number", CamelCase("embedded3number"));
+        assertEquals("Embedded3Number", CamelCase("embedded3number")); // prove ZERO_WIDTH_BETWEEN_DIGIT_AND_LETTER is needed
 
         // Filenames also get this treatment, and they can be wilder
         assertEquals("HyphenatedThing", CamelCase("hyphenated-thing"));
