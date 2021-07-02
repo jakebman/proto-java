@@ -19,10 +19,10 @@ package boeckerman.jake.protobuf; // proto packages don't care for reverse url p
   So, heads up - you might need to do that.
  */
 
-import "com/boeckerman/jake/protobuf/extensions.proto"; //Woo! it works!
+import "boeckerman/jake/protobuf/extensions.proto"; //Woo! it works!
 
 message Person {
-  option (com.boeckerman.jake.protobuf.java_helper).enabled = true;
+  option (boeckerman.jake.protobuf.java_helper).enabled = true;
   message Nested{ int32 field=1;}
   string name = 1;
   //  NON-COMPATIBLE CHANGE, conflicts on 1 with name, and is a different type
