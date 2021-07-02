@@ -5,6 +5,7 @@ import com.boeckerman.jake.protobuf.Extensions.JavaExtensionOptions.NullableOpti
 import com.boeckerman.jake.protobuf.InsertionPoint;
 import com.boeckerman.jake.protobuf.nested.contexts.FieldContext;
 import com.boeckerman.jake.protobuf.nested.contexts.MessageContext;
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
@@ -21,21 +22,24 @@ class FieldDescriptorModifications implements NestedStreamingIterable<File>, Fie
         this.nullableOptions = parent.messageExtensions.getNullableOptionals();
     }
 
+
     @Override
-    public Stream<PluginProtos.CodeGeneratorResponse.File> stream() {
+    public Stream<File> stream() {
         if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptions.getPrimitiveSuffix())) {
-            return Stream.of(InsertionPoint.class_scope
-                    // TODO: parent.parent is very gross. A better way?
-                    .fileBuilderFor(parent.parent.fileDescriptorProto, parent.messageDescriptorProto)
+            return Stream.of(fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize that we need to do something with primitive " + fieldDescriptorProto.getName())
                     .build());
         } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptions.getObjectSuffix())) {
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(parent.parent.fileDescriptorProto, parent.messageDescriptorProto)
+            return Stream.of(fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else {
             return Stream.empty();
         }
+    }
+
+    private File.Builder fileBuilderFor(InsertionPoint insertionPoint) {
+        return insertionPoint.fileBuilderFor(getFileDescriptorProto(), getMessageDescriptorProto());
     }
 
     // Context-passing code to help FieldDescriptorModifications read all necessary context
