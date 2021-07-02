@@ -18,9 +18,9 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
         this.parent = parent;
         this.messageDescriptorProto = messageDescriptorProto;
         messageExtensions = Optional.of(messageDescriptorProto)
-                .filter(DescriptorProtos.DescriptorProto::hasOptions)
+                .filter(descriptorProto -> getInvocationParameters().run_everywhere || descriptorProto.hasOptions())
                 .map(DescriptorProtos.DescriptorProto::getOptions)
-                .filter(o -> o.hasExtension(Extensions.javaHelper))
+                .filter(o -> getInvocationParameters().run_everywhere || o.hasExtension(Extensions.javaHelper))
                 .map(o -> o.getExtension(Extensions.javaHelper))
                 .orElse(null);
     }

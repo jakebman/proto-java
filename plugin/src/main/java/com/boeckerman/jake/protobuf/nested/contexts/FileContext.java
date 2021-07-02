@@ -12,4 +12,9 @@ public interface FileContext extends RootContext {
     default CodeGeneratorRequest getCodeGeneratorRequest() {
         return delegate().getCodeGeneratorRequest();
     }
+
+    @Override
+    default InvocationParameters getInvocationParameters() {
+        return delegate().getInvocationParameters();
+    }
 }

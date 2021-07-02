@@ -26,9 +26,11 @@ import java.util.stream.Stream;
 
 public class RootModifications implements CodeGenerator, NestedStreamingIterable<File>, RootContext {
     final CodeGeneratorRequest request;
+    private InvocationParameters invocationParameters;
 
     public RootModifications(CodeGeneratorRequest request) {
         this.request = request;
+        this.invocationParameters = new InvocationParameters(request.getParameter());
     }
 
     @Override // CodeGenerator
@@ -56,5 +58,10 @@ public class RootModifications implements CodeGenerator, NestedStreamingIterable
     @Override
     public CodeGeneratorRequest getCodeGeneratorRequest() {
         return request;
+    }
+
+    @Override
+    public InvocationParameters getInvocationParameters() {
+        return invocationParameters;
     }
 }
