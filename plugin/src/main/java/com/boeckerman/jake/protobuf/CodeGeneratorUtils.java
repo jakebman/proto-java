@@ -2,6 +2,9 @@ package com.boeckerman.jake.protobuf;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -12,7 +15,7 @@ public class CodeGeneratorUtils {
     public static final String OBLIGATORY_PATH_SEPARATOR = "/"; // protoc requires forward-slash, not backslash. Even on Windows.
     public static final String PACKAGE_SEPERATOR = ".";
 
-    static String insertionPointTypename(DescriptorProto descriptorProto,
+    public static String insertionPointTypename(DescriptorProto descriptorProto,
                                          FileDescriptorProto fileDescriptorProto) {
         if (fileDescriptorProto.hasPackage()) {
             return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + descriptorProto.getName();
@@ -20,7 +23,7 @@ public class CodeGeneratorUtils {
         return descriptorProto.getName();
     }
 
-    static String fileToModify(FileDescriptorProto fileDescriptorProto,
+    public static String fileToModify(FileDescriptorProto fileDescriptorProto,
                                DescriptorProto descriptorProto) {
         FileOptions options = fileDescriptorProto.getOptions();
         StringBuilder out = new StringBuilder();
@@ -87,9 +90,42 @@ public class CodeGeneratorUtils {
      */
     static final Pattern WORD_BREAK_PATTERN = Pattern.compile(NON_ALNUM_CHARACTERS + "|" + ZERO_WIDTH_BETWEEN_DIGIT_AND_LETTER);
 
-    static String CamelCase(String name_with_underscoresOrHyphens) {
+    public static String CamelCase(String name_with_underscoresOrHyphens) {
         return WORD_BREAK_PATTERN.splitAsStream(name_with_underscoresOrHyphens)
                 .map(StringUtils::capitalize)
                 .collect(Collectors.joining());
+    }
+
+    public static Function<String, FileDescriptorProto> fileNameToProtoFileDescriptorLookup(List<FileDescriptorProto> protoFileList) {
+        Map<String, FileDescriptorProto> lookup = protoFileList.stream()
+                .collect(Collectors.toMap(FileDescriptorProto::getName, Function.identity()));
+        return lookup::get;
+    }
+
+    public static boolean isPrimitive(FieldDescriptorProto.Type type) {
+        switch (type) {
+            case TYPE_DOUBLE:
+            case TYPE_FLOAT:
+            case TYPE_INT64:
+            case TYPE_UINT64:
+            case TYPE_INT32:
+            case TYPE_FIXED64:
+            case TYPE_FIXED32:
+            case TYPE_BOOL: // nb: DOUBLE->BOOL is a block of contiguous ids, then the rest of these are intermingled
+            case TYPE_UINT32:
+            case TYPE_SFIXED32:
+            case TYPE_SFIXED64:
+            case TYPE_SINT32:
+            case TYPE_SINT64:
+                return true;
+            case TYPE_STRING:
+            case TYPE_GROUP: // TOOD: WTF
+            case TYPE_MESSAGE:
+            case TYPE_BYTES:
+            case TYPE_ENUM:
+                return false;
+            default:
+                throw new RuntimeException("New type added, unrecognized");
+        }
     }
 }

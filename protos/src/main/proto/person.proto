@@ -28,6 +28,7 @@ message Person {
   //  NON-COMPATIBLE CHANGE, conflicts on 1 with name, and is a different type
   //  required int32 name = 1;
   int32 id = 2;
+  optional int64 some_primitive = 44;
   //  required int32 newid = 2;
   repeated string description = 45;
   optional string email = 3;
