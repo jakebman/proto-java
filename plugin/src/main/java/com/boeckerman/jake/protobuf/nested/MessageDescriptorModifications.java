@@ -1,17 +1,18 @@
 package com.boeckerman.jake.protobuf.nested;
 
 import com.boeckerman.jake.protobuf.Extensions;
+import com.boeckerman.jake.protobuf.nested.contexts.FileContext;
+import com.boeckerman.jake.protobuf.nested.contexts.MessageContext;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class MessageDescriptorModifications implements NestedStreamingIterable<PluginProtos.CodeGeneratorResponse.File> {
+class MessageDescriptorModifications implements NestedStreamingIterable<PluginProtos.CodeGeneratorResponse.File>, MessageContext {
     final FileDescriptorModifications parent;
     final DescriptorProtos.DescriptorProto messageDescriptorProto;
     final Extensions.JavaExtensionOptions messageExtensions;
-
 
     public MessageDescriptorModifications(FileDescriptorModifications parent, DescriptorProtos.DescriptorProto messageDescriptorProto) {
         this.parent = parent;
@@ -36,8 +37,24 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
                     .map(this::generateChild);
         }
     }
+
     private FieldDescriptorModifications generateChild(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
         return new FieldDescriptorModifications(this, fieldDescriptorProto);
     }
 
+    // Context-passing code to help FieldDescriptorModifications read all necessary context
+    @Override
+    public DescriptorProtos.DescriptorProto getMessageDescriptorProto() {
+        return messageDescriptorProto;
+    }
+
+    @Override
+    public Extensions.JavaExtensionOptions getMessageExtensions() {
+        return messageExtensions;
+    }
+
+    @Override
+    public FileContext delegate() {
+        return parent;
+    }
 }
