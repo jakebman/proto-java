@@ -45,9 +45,22 @@ public class CodeGeneratorImpl implements CodeGenerator {
         return fileDescriptorProto
                 .getMessageTypeList()
                 .stream()
-                .map(descriptorProto -> addInterface(fileDescriptorProto, descriptorProto));
+                .flatMap(descriptorProto -> addInterfaceIfOptionsEnabled(fileDescriptorProto, descriptorProto));
     }
 
+    private Stream<File> addInterfaceIfOptionsEnabled(FileDescriptorProto fileDescriptorProto,
+                                                      DescriptorProto descriptorProto) {
+        MessageOptions options = descriptorProto.getOptions();
+        if(!options.hasExtension(Extensions.javaHelper)) {
+            return Stream.empty();
+        }
+        Extensions.JavaExtensionOptions extension = options.getExtension(Extensions.javaHelper);
+        if (extension.getEnabled()) {
+            return Stream.of(addInterface(fileDescriptorProto, descriptorProto));
+        }else {
+            return Stream.empty();
+        }
+    }
     private File addInterface(FileDescriptorProto fileDescriptorProto,
                               DescriptorProto descriptorProto) {
         return File.newBuilder()

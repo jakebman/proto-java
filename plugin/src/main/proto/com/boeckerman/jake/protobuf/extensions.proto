@@ -1,0 +1,39 @@
+syntax = "proto2";
+import "google/protobuf/descriptor.proto";
+package com.boeckerman.jake.protobuf;
+
+// These extensions will use id 52532, which is JAKEB in T9.
+
+extend google.protobuf.MessageOptions {
+  optional JavaExtensionOptions java_helper = 52532;
+}
+
+extend google.protobuf.FieldOptions {
+  optional JavaFieldAlias alias = 52532;
+}
+message JavaFieldAlias {
+
+}
+
+message JavaExtensionOptions {
+  optional bool enabled = 1 [default = true];
+
+  optional NullableOptions nullable_optionals = 2;
+  message NullableOptions {
+    optional bool enabled = 1 [default = true];
+    optional string primitive_suffix = 2 [default = "_primitive"];
+    optional string object_suffix = 3 [default = "_proto_internal"];
+  }
+
+  optional ListOptions list_options = 15;
+  message ListOptions {
+    optional bool friendly_getter = 1;
+  }
+
+  message Experimental {
+    // none of these are currently implemented
+    optional bool with_ers = 1;
+    optional bool via_distinct_default_interfaces = 2;
+  }
+  optional Experimental experimental = 99;
+}
