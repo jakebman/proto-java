@@ -9,7 +9,6 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 public interface FieldContext extends MessageContext {
     FieldDescriptorProto getFieldDescriptorProto();
 
-    NullableOptions getNullableOptions();
 
     @Override
     MessageContext delegate();
@@ -22,5 +21,10 @@ public interface FieldContext extends MessageContext {
     @Override
     default JavaExtensionOptions getMessageExtensions() {
         return delegate().getMessageExtensions();
+    }
+
+    @Override
+    default NullableOptions getNullableOptions() {
+        return delegate().getNullableOptions();
     }
 }

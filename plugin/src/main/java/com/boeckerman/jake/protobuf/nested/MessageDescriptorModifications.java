@@ -13,22 +13,44 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
     final FileDescriptorModifications parent;
     final DescriptorProtos.DescriptorProto messageDescriptorProto;
     final Extensions.JavaExtensionOptions messageExtensions;
+    final Extensions.JavaExtensionOptions.NullableOptions nullableOptions;
 
     public MessageDescriptorModifications(FileDescriptorModifications parent, DescriptorProtos.DescriptorProto messageDescriptorProto) {
         this.parent = parent;
         this.messageDescriptorProto = messageDescriptorProto;
-        messageExtensions = Optional.of(messageDescriptorProto)
-                .filter(descriptorProto -> getInvocationParameters().run_everywhere || descriptorProto.hasOptions())
+        Optional<Extensions.JavaExtensionOptions> optionalExtension = Optional.of(messageDescriptorProto)
+                .filter(DescriptorProtos.DescriptorProto::hasOptions)
                 .map(DescriptorProtos.DescriptorProto::getOptions)
-                .filter(o -> getInvocationParameters().run_everywhere || o.hasExtension(Extensions.javaHelper))
-                .map(o -> o.getExtension(Extensions.javaHelper))
-                .orElse(null);
+                .filter(o -> o.hasExtension(Extensions.javaHelper))
+                .map(o -> o.getExtension(Extensions.javaHelper));
+
+
+        boolean enableMessageExtensions = optionalExtension
+                .map(Extensions.JavaExtensionOptions::getEnabled) // use the enabled flag if truly specified
+                .orElse(getInvocationParameters().run_everywhere);
+        boolean enableNullable = optionalExtension
+                .filter(Extensions.JavaExtensionOptions::hasNullableOptionals)
+                .map(Extensions.JavaExtensionOptions::getNullableOptionals)
+                .map(Extensions.JavaExtensionOptions.NullableOptions::getEnabled) // use the enabled flag if truly specified
+                .orElse(getInvocationParameters().run_everywhere);
+
+        messageExtensions = messageDescriptorProto
+                .getOptions()
+                .getExtension(Extensions.javaHelper)
+                .toBuilder()
+                .setEnabled(enableMessageExtensions)
+                .build();
+        nullableOptions = messageExtensions
+                .getNullableOptionals()
+                .toBuilder()
+                .setEnabled(enableNullable)
+                .build();
     }
 
     @Override
     public Stream<NestedStreamingIterable<PluginProtos.CodeGeneratorResponse.File>> children() {
-        // Preserve the invariant that any nested class will always see a non-null `messageExtensions`
-        if (messageExtensions == null) {
+        // Preserve the invariant that any nested class will always see an enabled nullable options and messageExtensions
+        if (!nullableOptions.getEnabled() || !messageExtensions.getEnabled()) {
             return Stream.empty();
         } else {
             return messageDescriptorProto
@@ -51,6 +73,11 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
     @Override
     public Extensions.JavaExtensionOptions getMessageExtensions() {
         return messageExtensions;
+    }
+
+    @Override
+    public Extensions.JavaExtensionOptions.NullableOptions getNullableOptions() {
+        return nullableOptions;
     }
 
     @Override

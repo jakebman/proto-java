@@ -9,6 +9,8 @@ public interface MessageContext extends FileContext {
 
     JavaExtensionOptions getMessageExtensions();
 
+    JavaExtensionOptions.NullableOptions getNullableOptions();
+
     @Override
     FileContext delegate();
 

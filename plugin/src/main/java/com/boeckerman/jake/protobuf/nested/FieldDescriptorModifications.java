@@ -14,22 +14,20 @@ import java.util.stream.Stream;
 class FieldDescriptorModifications implements NestedStreamingIterable<File>, FieldContext {
     final MessageDescriptorModifications parent;
     final FieldDescriptorProto fieldDescriptorProto;
-    final NullableOptions nullableOptions;
 
     FieldDescriptorModifications(MessageDescriptorModifications parent, DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
         this.parent = parent;
         this.fieldDescriptorProto = fieldDescriptorProto;
-        this.nullableOptions = parent.messageExtensions.getNullableOptionals();
     }
 
 
     @Override
     public Stream<File> stream() {
-        if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptions.getPrimitiveSuffix())) {
+        if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(getNullableOptions().getPrimitiveSuffix())) {
             return Stream.of(fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize that we need to do something with primitive " + fieldDescriptorProto.getName())
                     .build());
-        } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptions.getObjectSuffix())) {
+        } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(getNullableOptions().getObjectSuffix())) {
             return Stream.of(fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());
@@ -46,11 +44,6 @@ class FieldDescriptorModifications implements NestedStreamingIterable<File>, Fie
     @Override
     public FieldDescriptorProto getFieldDescriptorProto() {
         return fieldDescriptorProto;
-    }
-
-    @Override
-    public NullableOptions getNullableOptions() {
-        return nullableOptions;
     }
 
     @Override
