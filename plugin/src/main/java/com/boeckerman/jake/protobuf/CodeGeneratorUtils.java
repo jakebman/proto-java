@@ -10,11 +10,12 @@ import static com.google.protobuf.DescriptorProtos.*;
 public class CodeGeneratorUtils {
     public static final String JAVA_FILENAME_SUFFIX = ".java";
     public static final String OBLIGATORY_PATH_SEPARATOR = "/"; // protoc requires forward-slash, not backslash. Even on Windows.
+    public static final String PACKAGE_SEPERATOR = ".";
 
     static String insertionPointTypename(DescriptorProto descriptorProto,
                                          FileDescriptorProto fileDescriptorProto) {
         if (fileDescriptorProto.hasPackage()) {
-            return fileDescriptorProto.getPackage() + "." + descriptorProto.getName();
+            return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + descriptorProto.getName();
         }
         return descriptorProto.getName();
     }
