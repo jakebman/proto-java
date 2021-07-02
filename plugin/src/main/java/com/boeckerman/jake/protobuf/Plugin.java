@@ -1,5 +1,6 @@
 package com.boeckerman.jake.protobuf;
 
+import com.boeckerman.jake.protobuf.nested.RootModifications;
 import com.google.protobuf.ExtensionRegistry;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class Plugin {
         com.boeckerman.jake.protobuf.Extensions.registerAllExtensions(registry);
 
         CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in, registry);
-        CodeGenerator generator = new CodeGeneratorImpl(request);
+        CodeGenerator generator = new RootModifications(request);
 
         generator.generate().writeTo(System.out);
     }
