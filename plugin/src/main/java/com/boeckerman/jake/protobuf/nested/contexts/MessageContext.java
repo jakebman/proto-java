@@ -10,10 +10,10 @@ public interface MessageContext extends FileContext {
     JavaExtensionOptions getMessageExtensions();
 
     @Override
+    FileContext delegate();
+
+    @Override
     default FileDescriptorProto getFileDescriptorProto() {
         return delegate().getFileDescriptorProto();
     }
-
-    @Override
-    FileContext delegate();
 }

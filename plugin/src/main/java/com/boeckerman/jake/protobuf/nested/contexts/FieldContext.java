@@ -12,6 +12,9 @@ public interface FieldContext extends MessageContext {
     NullableOptions getNullableOptions();
 
     @Override
+    MessageContext delegate();
+
+    @Override
     default DescriptorProto getMessageDescriptorProto() {
         return delegate().getMessageDescriptorProto();
     }
@@ -20,7 +23,4 @@ public interface FieldContext extends MessageContext {
     default JavaExtensionOptions getMessageExtensions() {
         return delegate().getMessageExtensions();
     }
-
-    @Override
-    MessageContext delegate();
 }
