@@ -50,14 +50,13 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
     @Override
     public Stream<NestedStreamingIterable<PluginProtos.CodeGeneratorResponse.File>> children() {
         // Preserve the invariant that any nested class will always see an enabled nullable options and messageExtensions
-        if (!nullableOptions.getEnabled() || !messageExtensions.getEnabled()) {
-            return Stream.empty();
-        } else {
+        if (nullableOptions.getEnabled() && messageExtensions.getEnabled()) {
             return messageDescriptorProto
                     .getFieldList()
                     .stream()
                     .map(this::generateChild);
         }
+        return Stream.empty();
     }
 
     private FieldDescriptorModifications generateChild(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
