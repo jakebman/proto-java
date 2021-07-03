@@ -85,11 +85,11 @@ public class CodeGeneratorImpl implements CodeGenerator {
                                               DescriptorProto descriptorProto,
                                               FieldDescriptorProto fieldDescriptorProto) {
         if(CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())){
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fileDescriptorProto, descriptorProto)
+            return Stream.of(InsertionPoint.InsertionPointPrefix.class_scope.fileBuilderFor(fileDescriptorProto, descriptorProto)
                     .setContent("//"+ this.getClass().getName() + " - Recognize primitive we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else if(!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())){
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fileDescriptorProto, descriptorProto)
+            return Stream.of(InsertionPoint.InsertionPointPrefix.class_scope.fileBuilderFor(fileDescriptorProto, descriptorProto)
                     .setContent("//"+ this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else {
@@ -112,7 +112,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
     }
     private File addInterfaceComment(FileDescriptorProto fileDescriptorProto,
                                      DescriptorProto descriptorProto) {
-        return InsertionPoint.message_implements.fileBuilderFor(fileDescriptorProto, descriptorProto)
+        return InsertionPoint.InsertionPointPrefix.message_implements.fileBuilderFor(fileDescriptorProto, descriptorProto)
                 .setContent("// Marker Comment: this class has opted in to boeckerman.jake.protobuf.java_helper")
                 .build();
     }
