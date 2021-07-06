@@ -38,16 +38,10 @@ public class CodeGeneratorImpl implements CodeGenerator {
         return context.request()
                 .getFileToGenerateList() // list of .proto file names to work with
                 .stream()
-                .map(fileNameToProtoFileDescriptorLookup(context.request().getProtoFileList()))
+                .map(CodeGeneratorUtils.fileNameToProtoFileDescriptorLookup(context.request().getProtoFileList()))
                 .map(context::withFile)
                 .flatMap(this::modifications)
                 .collect(Collectors.toList());
-    }
-
-    private Function<String, FileDescriptorProto> fileNameToProtoFileDescriptorLookup(List<FileDescriptorProto> protoFileList) {
-        Map<String, FileDescriptorProto> lookup = protoFileList.stream()
-                .collect(Collectors.toMap(FileDescriptorProto::getName, Function.identity()));
-        return lookup::get;
     }
 
     private Stream<File> modifications(FileContext fileContext) {
