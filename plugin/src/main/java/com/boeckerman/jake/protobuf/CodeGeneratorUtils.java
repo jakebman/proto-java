@@ -105,29 +105,17 @@ public class CodeGeneratorUtils {
     }
 
     public static boolean isPrimitive(FieldDescriptorProto.Type type) {
-        switch (type) {
-            case TYPE_DOUBLE:
-            case TYPE_FLOAT:
-            case TYPE_INT64:
-            case TYPE_UINT64:
-            case TYPE_INT32:
-            case TYPE_FIXED64:
-            case TYPE_FIXED32:
-            case TYPE_BOOL: // nb: DOUBLE->BOOL is a block of contiguous ids, then the rest of these are intermingled
-            case TYPE_UINT32:
-            case TYPE_SFIXED32:
-            case TYPE_SFIXED64:
-            case TYPE_SINT32:
-            case TYPE_SINT64:
-                return true;
-            case TYPE_STRING:
-            case TYPE_GROUP: // TOOD: WTF
-            case TYPE_MESSAGE:
-            case TYPE_BYTES:
-            case TYPE_ENUM:
-                return false;
-            default:
-                throw new RuntimeException("New type added, unrecognized");
-        }
+        return switch (type) {
+            case TYPE_DOUBLE, TYPE_FLOAT, // floating-point
+                    TYPE_FIXED64, TYPE_SFIXED64, // fixed-point, wide
+                    TYPE_INT64, TYPE_UINT64, TYPE_SINT64, // ints, wide
+                    TYPE_FIXED32, TYPE_SFIXED32,  // fixed-point
+                    TYPE_INT32, TYPE_UINT32, TYPE_SINT32, // int
+                    TYPE_BOOL -> true;
+            case TYPE_STRING, TYPE_GROUP, TYPE_MESSAGE, TYPE_BYTES, TYPE_ENUM -> false;
+            // Protobuf is allowed to add new Enums to this class. In that case, java throws this error, but without a message
+            // https://docs.oracle.com/javase/specs/jls/se16/html/jls-15.html#jls-15.28.2
+            default -> throw new IncompatibleClassChangeError( type + " was not a valid value at compile time");
+        };
     }
 }
