@@ -1,5 +1,6 @@
 package com.boeckerman.jake.protobuf;
 
+import com.boeckerman.jake.protobuf.Context.GeneratedResponseFileCoordinates;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -15,37 +16,56 @@ public class CodeGeneratorUtils {
     public static final String OBLIGATORY_PATH_SEPARATOR = "/"; // protoc requires forward-slash, not backslash. Even on Windows.
     public static final String PACKAGE_SEPERATOR = ".";
 
-    public static String insertionPointTypename(DescriptorProto descriptorProto,
-                                                FileDescriptorProto fileDescriptorProto) {
+    public static String insertionPointTypename(GeneratedResponseFileCoordinates fileIdentifier) {
+        String messageDescriptorTypename = fileIdentifier.descriptorProto().getName();
+        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
+
         if (fileDescriptorProto.hasPackage()) {
-            return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + descriptorProto.getName();
+            return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + messageDescriptorTypename;
         }
-        return descriptorProto.getName();
+        return messageDescriptorTypename;
     }
 
-    public static String fileToModify(FileDescriptorProto fileDescriptorProto,
-                                      DescriptorProto descriptorProto) {
-        FileOptions options = fileDescriptorProto.getOptions();
-        StringBuilder out = new StringBuilder();
+    public static String fileToModify(GeneratedResponseFileCoordinates fileIdentifier) {
+        StringBuilder out = new StringBuilder(getJavaPackagePathFor(fileIdentifier));
 
-        if (options.hasJavaPackage()) {
-            out.append(packageToPath(options.getJavaPackage()));
-        } else if (fileDescriptorProto.hasPackage()) {
-            out.append(packageToPath(fileDescriptorProto.getPackage()));
-        }
         if (out.length() > 0) {
             out.append(OBLIGATORY_PATH_SEPARATOR);
         }
 
-        if (options.getJavaMultipleFiles()) {
-            out.append(descriptorProto.getName());
-        } else if (options.hasJavaOuterClassname()) {
-            out.append(options.getJavaOuterClassname());
-        } else {
-            out.append(outerClassNameForFile(fileDescriptorProto));
-        }
+        out.append(modificationClassName(fileIdentifier));
         out.append(JAVA_FILENAME_SUFFIX);
         return out.toString();
+    }
+
+    public static String modificationClassName(GeneratedResponseFileCoordinates fileIdentifier) {
+        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
+        FileOptions options = fileDescriptorProto.getOptions();
+
+        if (options.getJavaMultipleFiles()) {
+            return fileIdentifier.descriptorProto().getName();
+        } else if (options.hasJavaOuterClassname()) {
+            return options.getJavaOuterClassname();
+        } else {
+            return outerClassNameForFile(fileDescriptorProto);
+        }
+    }
+
+    public static String getJavaPackagePathFor(GeneratedResponseFileCoordinates fileIdentifier) {
+        return packageToPath(getJavaPackageFor(fileIdentifier));
+    }
+
+    public static String getJavaPackageFor(GeneratedResponseFileCoordinates fileIdentifier) {
+        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
+        FileOptions options = fileIdentifier.fileDescriptorProto().getOptions();
+
+        if (options.hasJavaPackage()) {
+            return options.getJavaPackage();
+        } else if (fileDescriptorProto.hasPackage()) {
+            return fileDescriptorProto.getPackage();
+        } else {
+            return "";
+        }
     }
 
     private static final Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
@@ -115,7 +135,7 @@ public class CodeGeneratorUtils {
             case TYPE_STRING, TYPE_GROUP, TYPE_MESSAGE, TYPE_BYTES, TYPE_ENUM -> false;
             // Protobuf is allowed to add new Enums to this class. In that case, java throws this error, but without a message
             // https://docs.oracle.com/javase/specs/jls/se16/html/jls-15.html#jls-15.28.2
-            default -> throw new IncompatibleClassChangeError( type + " was not a valid value at compile time");
+            default -> throw new IncompatibleClassChangeError(type + " was not a valid value at compile time");
         };
     }
 }
