@@ -21,17 +21,17 @@ public enum InsertionPoint {
 
     private static File.Builder fileBuilderFor_(GeneratedResponseFileCoordinates fileIdentifier) {
         return File.newBuilder()
-                .setName(GeneratedResponseFileCoordinates.fileToModify(fileIdentifier));
+                .setName(fileIdentifier.fileToModify());
     }
 
     public File.Builder fileBuilderFor(GeneratedResponseFileCoordinates fileIdentifier) {
         return fileBuilderFor_(fileIdentifier)
-                .setInsertionPoint(insertionPointFor(GeneratedResponseFileCoordinates.insertionPointTypename(fileIdentifier)));
+                .setInsertionPoint(insertionPointFor(fileIdentifier.insertionPointTypename()));
     }
 
 
     public String insertionPointFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return insertionPointFor(GeneratedResponseFileCoordinates.insertionPointTypename(fileIdentifier));
+        return insertionPointFor(fileIdentifier.insertionPointTypename());
     }
 
     public String insertionPointFor(String insertionPointTypename) {

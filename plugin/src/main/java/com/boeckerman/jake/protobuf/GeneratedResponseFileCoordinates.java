@@ -18,12 +18,10 @@ interface GeneratedResponseFileCoordinates {
         return insertionPoint.fileBuilderFor(this);
     }
 
-    String JAVA_FILENAME_SUFFIX = ".java";
     String PACKAGE_SEPERATOR = ".";
-
-    static String insertionPointTypename(GeneratedResponseFileCoordinates fileIdentifier) {
-        String messageDescriptorTypename = fileIdentifier.descriptorProto().getName();
-        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
+    default String insertionPointTypename() {
+        String messageDescriptorTypename = descriptorProto().getName();
+        FileDescriptorProto fileDescriptorProto = fileDescriptorProto();
 
         if (fileDescriptorProto.hasPackage()) {
             return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + messageDescriptorTypename;
@@ -31,38 +29,38 @@ interface GeneratedResponseFileCoordinates {
         return messageDescriptorTypename;
     }
 
-    static String fileToModify(GeneratedResponseFileCoordinates fileIdentifier) {
-        StringBuilder out = new StringBuilder(getJavaPackagePathFor(fileIdentifier));
+    String JAVA_FILENAME_SUFFIX = ".java";
+    default String fileToModify() {
+        StringBuilder out = new StringBuilder(getJavaPackagePathFor());
 
         if (out.length() > 0) {
             out.append(CodeGeneratorUtils.OBLIGATORY_PATH_SEPARATOR);
         }
 
-        out.append(modificationClassName(fileIdentifier));
+        out.append(modificationClassName());
         out.append(JAVA_FILENAME_SUFFIX);
         return out.toString();
     }
 
-    static String modificationClassName(GeneratedResponseFileCoordinates fileIdentifier) {
-        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
-        DescriptorProtos.FileOptions options = fileDescriptorProto.getOptions();
+    default String modificationClassName() {
+        DescriptorProtos.FileOptions options = fileDescriptorProto().getOptions();
 
         if (options.getJavaMultipleFiles()) {
-            return fileIdentifier.descriptorProto().getName();
+            return descriptorProto().getName();
         } else if (options.hasJavaOuterClassname()) {
             return options.getJavaOuterClassname();
         } else {
-            return outerClassNameForFile(fileDescriptorProto);
+            return outerClassNameForFile(fileDescriptorProto());
         }
     }
 
-    static String getJavaPackagePathFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return CodeGeneratorUtils.packageToPath(getJavaPackageFor(fileIdentifier));
+    default String getJavaPackagePathFor() {
+        return CodeGeneratorUtils.packageToPath(getJavaPackage());
     }
 
-    static String getJavaPackageFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
-        DescriptorProtos.FileOptions options = fileIdentifier.fileDescriptorProto().getOptions();
+    default String getJavaPackage() {
+        FileDescriptorProto fileDescriptorProto = fileDescriptorProto();
+        DescriptorProtos.FileOptions options = fileDescriptorProto().getOptions();
 
         if (options.hasJavaPackage()) {
             return options.getJavaPackage();
