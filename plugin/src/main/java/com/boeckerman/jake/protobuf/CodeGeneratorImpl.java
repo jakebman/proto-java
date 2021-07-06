@@ -14,6 +14,7 @@ import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.Fe
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
 public class CodeGeneratorImpl implements CodeGenerator {
+
     @Override
     public CodeGeneratorResponse generate(CodeGeneratorRequest request) {
         Context.RootContext context = new Context.RootContext(request);
@@ -48,15 +49,9 @@ public class CodeGeneratorImpl implements CodeGenerator {
     }
 
     private Stream<File> modifications(Context.MessageContext messageContext) {
-        if (messageContext.javaExtensionOptions().getEnabled()) {
-            return Stream.of(
-                    Stream.of(addInterfaceComment(messageContext)),
-                    applyNullableOptions(messageContext)
-            )
-                    .flatMap(Function.identity());
-        } else {
-            return Stream.empty();
-        }
+        return StreamUtil.concat(
+                addInterfaceComment(messageContext), // nb: returns a single File, but that's not super relevant, which is why concat has an overload
+                applyNullableOptions(messageContext));
     }
 
     private Stream<File> applyNullableOptions(Context.MessageContext messageContext) {
