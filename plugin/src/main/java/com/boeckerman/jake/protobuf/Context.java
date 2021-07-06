@@ -6,22 +6,9 @@ import com.boeckerman.jake.protobuf.Extensions.JavaGlobalOptions;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import com.google.protobuf.compiler.PluginProtos;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 
 public class Context {
-
-    // so we can get the file builder for any sufficiently-deep context
-    interface GeneratedResponseFileCoordinates {
-        // the two record fields that insertion points need to uniquely identify a file edit point
-        FileDescriptorProto fileDescriptorProto();
-
-        DescriptorProto descriptorProto();
-
-        default PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(InsertionPoint insertionPoint) {
-            return insertionPoint.fileBuilderFor(this);
-        }
-    }
 
     static record RootContext(CodeGeneratorRequest request) {
         FileContext withFile(FileDescriptorProto fileDescriptorProto) {

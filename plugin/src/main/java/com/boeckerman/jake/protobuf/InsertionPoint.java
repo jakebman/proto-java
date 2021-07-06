@@ -1,6 +1,5 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.Context.GeneratedResponseFileCoordinates;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
 public enum InsertionPoint {

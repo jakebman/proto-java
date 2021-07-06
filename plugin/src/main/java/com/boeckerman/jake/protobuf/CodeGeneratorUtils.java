@@ -1,6 +1,5 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.Context.GeneratedResponseFileCoordinates;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
