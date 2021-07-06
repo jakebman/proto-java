@@ -2,6 +2,7 @@ package com.boeckerman.jake.protobuf;
 
 import com.boeckerman.jake.protobuf.Extensions.JavaExtensionOptions;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
+import com.boeckerman.jake.protobuf.Extensions.JavaGlobalOptions;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -28,30 +29,36 @@ public class Context {
         }
     }
 
-    static JavaExtensionOptions javaExtensionOptionsFor(FileDescriptorProto fileDescriptorProto) {
+    static JavaGlobalOptions javaExtensionOptionsFor(FileDescriptorProto fileDescriptorProto) {
         return fileDescriptorProto.getOptions().getExtension(Extensions.javaHelperGlobals);
     }
 
     static record FileContext(CodeGeneratorRequest request,
                               FileDescriptorProto fileDescriptorProto,
-                              JavaExtensionOptions javaExtensionOptions) {
+                              JavaGlobalOptions javaGlobalOptions) {
 
         MessageContext withMessage(DescriptorProto descriptorProto) {
             return new MessageContext(request, fileDescriptorProto,
                     descriptorProto,
-                    enhancedExtensionOptions(javaExtensionOptions, descriptorProto));
+                    enhancedExtensionOptions(javaGlobalOptions, descriptorProto));
         }
 
     }
 
-    static JavaExtensionOptions enhancedExtensionOptions(JavaExtensionOptions javaExtensionOptions,
+    static JavaExtensionOptions enhancedExtensionOptions(JavaGlobalOptions javaGlobalOptions,
                                                          DescriptorProto descriptorProto) {
-        return javaExtensionOptions
+
+        JavaExtensionOptions.Builder builder = javaGlobalOptions
+                .getGlobals()
                 .toBuilder()
                 .mergeFrom(descriptorProto
                         .getOptions()
-                        .getExtension(Extensions.javaHelperMessage))
-                .build();
+                        .getExtension(Extensions.javaHelperMessage));
+
+        if (!builder.hasEnabled()) {
+            builder.setEnabled(javaGlobalOptions.getEnabled());
+        }
+        return builder.build();
     }
 
     static record MessageContext(CodeGeneratorRequest request,
@@ -60,26 +67,24 @@ public class Context {
                                  JavaExtensionOptions javaExtensionOptions)
             implements GeneratedResponseFileCoordinates {
 
-        FieldContext withField(FieldDescriptorProto fieldDescriptorProto) {
+        FieldContext withFieldDescriptor(FieldDescriptorProto fieldDescriptorProto) {
             return new FieldContext(request, fileDescriptorProto, descriptorProto,
                     fieldDescriptorProto,
                     enhancedFieldExtensions(javaExtensionOptions, fieldDescriptorProto));
         }
     }
 
-
     static JavaFieldExtension enhancedFieldExtensions(JavaExtensionOptions javaExtensionOptions, FieldDescriptorProto fieldDescriptorProto) {
         JavaFieldExtension javaFieldExtension = fieldDescriptorProto.getOptions().getExtension(Extensions.javaHelper);
-        JavaFieldExtension.Builder builder = javaFieldExtension.toBuilder();
-        builder.mergeNullable(javaExtensionOptions.getNullable());
-        builder.mergeList(javaExtensionOptions.getList());
-        builder.mergeAlias(javaExtensionOptions.getAlias()); // nb: alias lists are concatenated
-        builder.mergeBoolean(javaExtensionOptions.getBoolean());
+
+        JavaFieldExtension.Builder builder = javaExtensionOptions.getOverrides()
+                .toBuilder()
+                .mergeFrom(javaFieldExtension);
         if (!builder.hasEnabled()) {
             builder.setEnabled(javaExtensionOptions.getEnabled());
         }
-
-        return builder.build();
+        return builder
+                .build();
     }
 
     static record FieldContext(CodeGeneratorRequest request,

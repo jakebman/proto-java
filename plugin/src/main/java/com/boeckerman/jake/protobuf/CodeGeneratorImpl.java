@@ -4,7 +4,10 @@ import com.boeckerman.jake.protobuf.Context.FieldContext;
 import com.boeckerman.jake.protobuf.Context.FileContext;
 import com.boeckerman.jake.protobuf.Context.MessageContext;
 import com.boeckerman.jake.protobuf.Context.RootContext;
-import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOptionsOrBuilder;
+import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
+import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.ListOptions;
+import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOptions;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
+import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
@@ -56,40 +60,75 @@ public class CodeGeneratorImpl implements CodeGenerator {
 
     private Stream<File> modifications(MessageContext messageContext) {
         return StreamUtil.concat(
-                addInterfaceComment(messageContext), // nb: returns a single File, but that's not super relevant, which is why concat has an overload
-                applyNullableOptions(messageContext));
+                addInterfaceComment(messageContext),
+                messageContext.descriptorProto()
+                        .getFieldList()
+                        .stream()
+                        .map(messageContext::withFieldDescriptor)
+                        .flatMap(this::modfications));
     }
 
-    private Stream<File> applyNullableOptions(MessageContext messageContext) {
-        // TODO: after re-organizing the extensions protobuf file, this method is garbage.
-        if (!messageContext.javaExtensionOptions().getEnabled()) {
+    private File addInterfaceComment(MessageContext messageContext) {
+        return messageContext.fileBuilderFor(InsertionPoint.message_implements)
+                .setContent("// Marker Comment: this class has opted in to boeckerman.jake.protobuf.java_helper")
+                .build();
+    }
+
+    private Stream<File> modfications(FieldContext fieldContext) {
+        if (fieldContext.fieldExtension().getEnabled()) {
+            return StreamUtil.concat(
+                    applyNullableOptions(fieldContext),
+                    applyListOptions(fieldContext),
+                    applyAliasOptions(fieldContext),
+                    applyBooleanOptions(fieldContext)
+            );
+        } else {
             return Stream.empty();
         }
-        return messageContext.descriptorProto().getFieldList()
-                .stream()
-                .filter(f -> f.getLabel() == LABEL_OPTIONAL)
-                .map(messageContext::withField)
-                .flatMap(this::applyNullableOptions);
     }
 
     private Stream<File> applyNullableOptions(FieldContext fieldContext) {
-        NullableOptionsOrBuilder nullableOptionals = fieldContext.fieldExtension().getNullable();
-        if (CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getPrimitiveSuffix())) {
+        JavaFieldExtension javaFieldExtension = fieldContext.fieldExtension();
+        FieldDescriptorProto fieldDescriptorProto = fieldContext.fieldDescriptorProto();
+        if (fieldDescriptorProto.getLabel() != LABEL_OPTIONAL) {
+            return Stream.empty();
+        }
+        NullableOptions nullableOptionals = javaFieldExtension.getNullable();
+        if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType())
+                && fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())) {
+
             return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
-                    .setContent("//" + this.getClass().getName() + " - Recognize primitive we need to work on " + fieldContext.fieldDescriptorProto().getName())
+                    .setContent("//" + this.getClass().getName() + " - Recognize primitive we need to work on " + fieldDescriptorProto.getName())
                     .build());
-        } else if (!CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getObjectSuffix())) {
+        } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType())
+                && fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())) {
+
             return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
-                    .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldContext.fieldDescriptorProto().getName())
+                    .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else {
             return Stream.empty();
         }
     }
 
-    private File addInterfaceComment(MessageContext messageContext) {
-        return InsertionPoint.message_implements.fileBuilderFor(messageContext)
-                .setContent("// Marker Comment: this class has opted in to boeckerman.jake.protobuf.java_helper")
-                .build();
+    private Stream<File> applyListOptions(FieldContext fieldContext) {
+        JavaFieldExtension javaFieldExtension = fieldContext.fieldExtension();
+        FieldDescriptorProto fieldDescriptorProto = fieldContext.fieldDescriptorProto();
+        if (fieldDescriptorProto.getLabel() != LABEL_REPEATED) {
+            return Stream.empty();
+        }
+        ListOptions listOptions = javaFieldExtension.getList();
+        //Stub.
+        return Stream.empty();
+    }
+
+    private Stream<File> applyAliasOptions(FieldContext fieldContext) {
+        // Stub.
+        return Stream.empty();
+    }
+
+    private Stream<File> applyBooleanOptions(FieldContext fieldContext) {
+        // Stub.
+        return Stream.empty();
     }
 }

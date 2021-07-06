@@ -6,12 +6,7 @@ option java_package = "com.boeckerman.jake.protobuf";
 // These extensions will use id 52532, which is JAKEB in T9.
 
 extend google.protobuf.FileOptions {
-  optional JavaExtensionOptions java_helper_globals = 52532;
-}
-// TODO: have the file options use this instead
-message JavaGlobalOptions {
-  optional bool enabled = 1 [default = false]; // can't accidentally use this extension
-  optional JavaExtensionOptions globals = 2;
+  optional JavaGlobalOptions java_helper_globals = 52532;
 }
 
 extend google.protobuf.MessageOptions {
@@ -20,6 +15,11 @@ extend google.protobuf.MessageOptions {
 
 extend google.protobuf.FieldOptions {
   optional JavaFieldExtension java_helper = 52532;
+}
+
+message JavaGlobalOptions {
+  optional bool enabled = 1 [default = false]; // can't accidentally use this extension
+  optional JavaExtensionOptions globals = 2;
 }
 
 message JavaFieldExtension {
@@ -38,7 +38,7 @@ message JavaFieldExtension {
   message ListOptions {
     // optional bool enabled = 1 [default = true];
     optional bool friendly_getter = 2 [default = true]; // getter drops the "List" from getXList
-    optional bool add_all_accepts_stream = 3 [default = true]; //.addAll(Stream<X>) exists
+    optional bool add_all_accepts_stream = 3 [default = true]; // create .addAllX(Stream<X>)
   }
   optional ListOptions list = 2;
 
@@ -58,16 +58,11 @@ message JavaFieldExtension {
   optional BooleanOptions boolean = 5;
 }
 
-
+// TODO: better name
 message JavaExtensionOptions {
   optional bool enabled = 1 [default = true];
-
-  // global overrides for these
-  optional JavaFieldExtension overrides = 939;
-  optional JavaFieldExtension.NullableOptions nullable = 2;
-  optional JavaFieldExtension.ListOptions list = 3;
-  optional JavaFieldExtension.AliasOptions alias = 4;
-  optional JavaFieldExtension.BooleanOptions boolean = 5;
+  repeated string implements = 2;
+  optional JavaFieldExtension overrides = 3;
 
   reserved 15; // reserved for future use.
 
