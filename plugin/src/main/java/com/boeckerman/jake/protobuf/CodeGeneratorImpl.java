@@ -65,7 +65,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
                         .getFieldList()
                         .stream()
                         .map(messageContext::withFieldDescriptor)
-                        .flatMap(this::modfications));
+                        .flatMap(this::modifications));
     }
 
     private File addInterfaceComment(MessageContext messageContext) {
@@ -74,7 +74,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
                 .build();
     }
 
-    private Stream<File> modfications(FieldContext fieldContext) {
+    private Stream<File> modifications(FieldContext fieldContext) {
         if (fieldContext.fieldExtension().getEnabled()) {
             return StreamUtil.concat(
                     applyNullableOptions(fieldContext),
