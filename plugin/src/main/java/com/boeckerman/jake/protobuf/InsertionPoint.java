@@ -40,7 +40,7 @@ public enum InsertionPoint {
                 .setName(CodeGeneratorUtils.fileToModify(fileDescriptorProto, descriptorProto));
     }
 
-    public PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(CodeGeneratorImpl.MessageContext messageContext) {
+    public PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(Context.MessageContext messageContext) {
         return fileBuilderFor(messageContext.fileDescriptorProto(), messageContext.descriptorProto());
     }
 }

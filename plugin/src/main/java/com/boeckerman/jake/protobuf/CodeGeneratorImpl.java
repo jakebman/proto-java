@@ -16,18 +16,18 @@ import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.Fi
 public class CodeGeneratorImpl implements CodeGenerator {
     @Override
     public CodeGeneratorResponse generate(CodeGeneratorRequest request) {
-        RootContext context = new RootContext(request);
+        Context.RootContext context = new Context.RootContext(request);
         return CodeGeneratorResponse.newBuilder()
                 .addAllFile(modifications(context))
                 .setSupportedFeatures(Feature.FEATURE_PROTO3_OPTIONAL_VALUE) // anticipate emphatic support - we want this
                 .build();
     }
 
-    private List<File> modifications(RootContext context) {
-        return context.request
+    private List<File> modifications(Context.RootContext context) {
+        return context.request()
                 .getFileToGenerateList() // list of .proto file names to work with
                 .stream()
-                .map(fileNameToProtoFileDescriptorLookup(context.request.getProtoFileList()))
+                .map(fileNameToProtoFileDescriptorLookup(context.request().getProtoFileList()))
                 .map(context::withFile)
                 .flatMap(this::modifications)
                 .collect(Collectors.toList());
@@ -39,16 +39,16 @@ public class CodeGeneratorImpl implements CodeGenerator {
         return lookup::get;
     }
 
-    private Stream<File> modifications(FileContext fileContext) {
-        return fileContext.fileDescriptorProto
+    private Stream<File> modifications(Context.FileContext fileContext) {
+        return fileContext.fileDescriptorProto()
                 .getMessageTypeList()
                 .stream()
                 .map(fileContext::withMessage)
                 .flatMap(this::modifications);
     }
 
-    private Stream<File> modifications(MessageContext messageContext) {
-        if (messageContext.javaExtensionOptions.getEnabled()) {
+    private Stream<File> modifications(Context.MessageContext messageContext) {
+        if (messageContext.javaExtensionOptions().getEnabled()) {
             return Stream.of(
                     Stream.of(addInterfaceComment(messageContext)),
                     applyNullableOptions(messageContext)
@@ -59,34 +59,34 @@ public class CodeGeneratorImpl implements CodeGenerator {
         }
     }
 
-    private Stream<File> applyNullableOptions(MessageContext messageContext) {
-        if(!messageContext.javaExtensionOptions.getNullableOptionals().getEnabled()) {
+    private Stream<File> applyNullableOptions(Context.MessageContext messageContext) {
+        if(!messageContext.javaExtensionOptions().getNullableOptionals().getEnabled()) {
             return Stream.empty();
         }
-        return messageContext.descriptorProto.getFieldList()
+        return messageContext.descriptorProto().getFieldList()
                 .stream()
                 .filter(f -> f.getLabel()==LABEL_OPTIONAL)
                 .map(messageContext::withField)
                 .flatMap(this::applyNullableOptions);
     }
 
-    private Stream<File> applyNullableOptions(FieldContext fieldContext) {
-        Extensions.JavaExtensionOptions.NullableOptionsOrBuilder nullableOptionals = fieldContext.javaExtensionOptions.getNullableOptionals();
-        if(CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto.getType()) && fieldContext.fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())){
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fieldContext.fileDescriptorProto, fieldContext.descriptorProto)
-                    .setContent("//"+ this.getClass().getName() + " - Recognize primitive we need to work on " + fieldContext.fieldDescriptorProto.getName())
+    private Stream<File> applyNullableOptions(Context.FieldContext fieldContext) {
+        Extensions.JavaExtensionOptions.NullableOptionsOrBuilder nullableOptionals = fieldContext.javaExtensionOptions().getNullableOptionals();
+        if(CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getPrimitiveSuffix())){
+            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fieldContext.fileDescriptorProto(), fieldContext.descriptorProto())
+                    .setContent("//"+ this.getClass().getName() + " - Recognize primitive we need to work on " + fieldContext.fieldDescriptorProto().getName())
                     .build());
-        } else if(!CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto.getType()) && fieldContext.fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())){
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fieldContext.fileDescriptorProto, fieldContext.descriptorProto)
-                    .setContent("//"+ this.getClass().getName() + " - Recognize Object we need to work on " + fieldContext.fieldDescriptorProto.getName())
+        } else if(!CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getObjectSuffix())){
+            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fieldContext.fileDescriptorProto(), fieldContext.descriptorProto())
+                    .setContent("//"+ this.getClass().getName() + " - Recognize Object we need to work on " + fieldContext.fieldDescriptorProto().getName())
                     .build());
         } else {
             return Stream.empty();
         }
     }
 
-    private Stream<File> addInterfaceCommentIfOptionsEnabled(MessageContext messageContext) {
-        MessageOptions options = messageContext.descriptorProto.getOptions();
+    private Stream<File> addInterfaceCommentIfOptionsEnabled(Context.MessageContext messageContext) {
+        MessageOptions options = messageContext.descriptorProto().getOptions();
         if(!options.hasExtension(Extensions.javaHelper)) {
             return Stream.empty();
         }
@@ -97,44 +97,9 @@ public class CodeGeneratorImpl implements CodeGenerator {
             return Stream.empty();
         }
     }
-    private File addInterfaceComment(MessageContext messageContext) {
+    private File addInterfaceComment(Context.MessageContext messageContext) {
         return InsertionPoint.message_implements.fileBuilderFor(messageContext)
                 .setContent("// Marker Comment: this class has opted in to boeckerman.jake.protobuf.java_helper")
                 .build();
     }
-
-
-    static record RootContext(CodeGeneratorRequest request) {
-        FileContext withFile(FileDescriptorProto fileDescriptorProto) {
-            return new FileContext(request, fileDescriptorProto);
-        }
-    }
-
-    static record FileContext(CodeGeneratorRequest request, FileDescriptorProto fileDescriptorProto) {
-        Extensions.JavaExtensionOptions javaExtensionOptionsFor(DescriptorProto descriptorProto) {
-            return descriptorProto.getOptions().getExtension(Extensions.javaHelper);
-        }
-
-        MessageContext withMessage(DescriptorProto descriptorProto) {
-            return new MessageContext(request, fileDescriptorProto, descriptorProto, javaExtensionOptionsFor(descriptorProto));
-        }
-    }
-
-    static record MessageContext(CodeGeneratorRequest request,
-                                 FileDescriptorProto fileDescriptorProto,
-                                 DescriptorProto descriptorProto,
-                                 Extensions.JavaExtensionOptions javaExtensionOptions) {
-        FieldContext withField(FieldDescriptorProto fieldDescriptorProto) {
-            return new FieldContext(request, fileDescriptorProto, descriptorProto, javaExtensionOptions, fieldDescriptorProto);
-        }
-    }
-
-    static record FieldContext(CodeGeneratorRequest request,
-                               FileDescriptorProto fileDescriptorProto,
-                               DescriptorProto descriptorProto,
-                               Extensions.JavaExtensionOptions javaExtensionOptions,
-                               FieldDescriptorProto fieldDescriptorProto) {
-
-    }
-
 }
