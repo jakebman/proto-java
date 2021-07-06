@@ -13,8 +13,8 @@ public class Plugin {
         com.boeckerman.jake.protobuf.Extensions.registerAllExtensions(registry);
 
         CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in, registry);
-        CodeGenerator generator = new CodeGeneratorImpl(request);
+        CodeGenerator generator = new CodeGeneratorImpl();
 
-        generator.generate().writeTo(System.out);
+        generator.generate(request).writeTo(System.out);
     }
 }

@@ -39,4 +39,8 @@ public enum InsertionPoint {
         return PluginProtos.CodeGeneratorResponse.File.newBuilder()
                 .setName(CodeGeneratorUtils.fileToModify(fileDescriptorProto, descriptorProto));
     }
+
+    public PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(CodeGeneratorImpl.MessageContext messageContext) {
+        return fileBuilderFor(messageContext.fileDescriptorProto(), messageContext.descriptorProto());
+    }
 }
