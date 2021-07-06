@@ -8,94 +8,19 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.google.protobuf.DescriptorProtos.*;
+import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 public class CodeGeneratorUtils {
-    public static final String JAVA_FILENAME_SUFFIX = ".java";
     public static final String OBLIGATORY_PATH_SEPARATOR = "/"; // protoc requires forward-slash, not backslash. Even on Windows.
-    public static final String PACKAGE_SEPERATOR = ".";
 
-    public static String insertionPointTypename(GeneratedResponseFileCoordinates fileIdentifier) {
-        String messageDescriptorTypename = fileIdentifier.descriptorProto().getName();
-        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
-
-        if (fileDescriptorProto.hasPackage()) {
-            return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + messageDescriptorTypename;
-        }
-        return messageDescriptorTypename;
-    }
-
-    public static String fileToModify(GeneratedResponseFileCoordinates fileIdentifier) {
-        StringBuilder out = new StringBuilder(getJavaPackagePathFor(fileIdentifier));
-
-        if (out.length() > 0) {
-            out.append(OBLIGATORY_PATH_SEPARATOR);
-        }
-
-        out.append(modificationClassName(fileIdentifier));
-        out.append(JAVA_FILENAME_SUFFIX);
-        return out.toString();
-    }
-
-    public static String modificationClassName(GeneratedResponseFileCoordinates fileIdentifier) {
-        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
-        FileOptions options = fileDescriptorProto.getOptions();
-
-        if (options.getJavaMultipleFiles()) {
-            return fileIdentifier.descriptorProto().getName();
-        } else if (options.hasJavaOuterClassname()) {
-            return options.getJavaOuterClassname();
-        } else {
-            return outerClassNameForFile(fileDescriptorProto);
-        }
-    }
-
-    public static String getJavaPackagePathFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return packageToPath(getJavaPackageFor(fileIdentifier));
-    }
-
-    public static String getJavaPackageFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        FileDescriptorProto fileDescriptorProto = fileIdentifier.fileDescriptorProto();
-        FileOptions options = fileIdentifier.fileDescriptorProto().getOptions();
-
-        if (options.hasJavaPackage()) {
-            return options.getJavaPackage();
-        } else if (fileDescriptorProto.hasPackage()) {
-            return fileDescriptorProto.getPackage();
-        } else {
-            return "";
-        }
-    }
-
-    private static final Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
-    public static final String OUTER_CLASS_SUFFIX = "OuterClass";
-
-    private static String outerClassNameForFile(FileDescriptorProto fileDescriptorProto) {
-        String guess = CamelCase(deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName()));
-
-        // minor concern: This might be inefficient.
-        // If our program is slow, we should count executions
-        if (fileDescriptorProto.getMessageTypeList()
-                .stream()
-                .map(CodeGeneratorUtils::classNameForMessageDescriptor)
-                .noneMatch(guess::equals)) {
-            return guess;
-        } else {
-            return guess + OUTER_CLASS_SUFFIX;
-        }
-    }
-
-    private static String deleteMatchesOfPattern(Pattern pattern, String string) {
+    public static String deleteMatchesOfPattern(Pattern pattern, String string) {
         return pattern.matcher(string).replaceAll("");
-    }
-
-    private static String classNameForMessageDescriptor(DescriptorProto descriptorProto) {
-        return CamelCase(descriptorProto.getName());
     }
 
     private static final Pattern SINGLE_DOT = Pattern.compile("\\.");
 
-    private static String packageToPath(String javaPackage) {
+    public static String packageToPath(String javaPackage) {
         return SINGLE_DOT.matcher(javaPackage).replaceAll(OBLIGATORY_PATH_SEPARATOR);
     }
 
