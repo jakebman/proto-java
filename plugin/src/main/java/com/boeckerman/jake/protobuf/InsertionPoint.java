@@ -1,7 +1,8 @@
 package com.boeckerman.jake.protobuf;
 
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.compiler.PluginProtos;
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
 public enum InsertionPoint {
     builder_implements,
@@ -20,24 +21,24 @@ public enum InsertionPoint {
     // provided by this plugin
     custom_mixin_file; // would officially be more like "interface_scope"
 
-    public PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(Context.GeneratedResponseFileCoordinates fileIdentifier) {
-        return fileBuilderFor(fileIdentifier.fileDescriptorProto(), fileIdentifier.descriptorProto());
-    }
-
-    public static PluginProtos.CodeGeneratorResponse.File customMixinFile(DescriptorProtos.FileDescriptorProto fileDescriptorProto, DescriptorProtos.DescriptorProto descriptorProto) {
+    public static File customMixinFile(FileDescriptorProto fileDescriptorProto, DescriptorProto descriptorProto) {
         return custom_mixin_file.fileBuilderFor(fileDescriptorProto, descriptorProto)
                 .clearInsertionPoint() //
                 .build();
     }
 
-    private PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(DescriptorProtos.FileDescriptorProto fileDescriptorProto, DescriptorProtos.DescriptorProto descriptorProto) {
-        return fileBuilderFor_(fileDescriptorProto, descriptorProto)
-                .setInsertionPoint(insertionPointFor(CodeGeneratorUtils.insertionPointTypename(descriptorProto, fileDescriptorProto)));
+    private static File.Builder fileBuilderFor_(FileDescriptorProto fileDescriptorProto, DescriptorProto descriptorProto) {
+        return File.newBuilder()
+                .setName(CodeGeneratorUtils.fileToModify(fileDescriptorProto, descriptorProto));
     }
 
-    private static PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor_(DescriptorProtos.FileDescriptorProto fileDescriptorProto, DescriptorProtos.DescriptorProto descriptorProto) {
-        return PluginProtos.CodeGeneratorResponse.File.newBuilder()
-                .setName(CodeGeneratorUtils.fileToModify(fileDescriptorProto, descriptorProto));
+    public File.Builder fileBuilderFor(Context.GeneratedResponseFileCoordinates fileIdentifier) {
+        return fileBuilderFor(fileIdentifier.fileDescriptorProto(), fileIdentifier.descriptorProto());
+    }
+
+    private File.Builder fileBuilderFor(FileDescriptorProto fileDescriptorProto, DescriptorProto descriptorProto) {
+        return fileBuilderFor_(fileDescriptorProto, descriptorProto)
+                .setInsertionPoint(insertionPointFor(CodeGeneratorUtils.insertionPointTypename(descriptorProto, fileDescriptorProto)));
     }
 
     private String insertionPointFor(String insertionPointTypename) {

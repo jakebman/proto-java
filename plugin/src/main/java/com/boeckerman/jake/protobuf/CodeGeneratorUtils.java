@@ -16,7 +16,7 @@ public class CodeGeneratorUtils {
     public static final String PACKAGE_SEPERATOR = ".";
 
     public static String insertionPointTypename(DescriptorProto descriptorProto,
-                                         FileDescriptorProto fileDescriptorProto) {
+                                                FileDescriptorProto fileDescriptorProto) {
         if (fileDescriptorProto.hasPackage()) {
             return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + descriptorProto.getName();
         }
@@ -24,7 +24,7 @@ public class CodeGeneratorUtils {
     }
 
     public static String fileToModify(FileDescriptorProto fileDescriptorProto,
-                               DescriptorProto descriptorProto) {
+                                      DescriptorProto descriptorProto) {
         FileOptions options = fileDescriptorProto.getOptions();
         StringBuilder out = new StringBuilder();
 
@@ -50,12 +50,13 @@ public class CodeGeneratorUtils {
 
     private static final Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
     public static final String OUTER_CLASS_SUFFIX = "OuterClass";
+
     private static String outerClassNameForFile(FileDescriptorProto fileDescriptorProto) {
         String guess = CamelCase(deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName()));
 
         // minor concern: This might be inefficient.
         // If our program is slow, we should count executions
-        if(fileDescriptorProto.getMessageTypeList()
+        if (fileDescriptorProto.getMessageTypeList()
                 .stream()
                 .map(CodeGeneratorUtils::classNameForMessageDescriptor)
                 .noneMatch(guess::equals)) {
@@ -74,6 +75,7 @@ public class CodeGeneratorUtils {
     }
 
     private static final Pattern SINGLE_DOT = Pattern.compile("\\.");
+
     private static String packageToPath(String javaPackage) {
         return SINGLE_DOT.matcher(javaPackage).replaceAll(OBLIGATORY_PATH_SEPARATOR);
     }
