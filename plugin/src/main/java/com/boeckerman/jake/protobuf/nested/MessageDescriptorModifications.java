@@ -1,15 +1,21 @@
 package com.boeckerman.jake.protobuf.nested;
 
 import com.boeckerman.jake.protobuf.Extensions;
+import com.boeckerman.jake.protobuf.InsertionPoint;
+import com.boeckerman.jake.protobuf.InsertionPoint.InsertionPointPrefix;
 import com.boeckerman.jake.protobuf.nested.contexts.FileContext;
 import com.boeckerman.jake.protobuf.nested.contexts.MessageContext;
 import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.compiler.PluginProtos;
+import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class MessageDescriptorModifications implements NestedStreamingIterable<PluginProtos.CodeGeneratorResponse.File>, MessageContext {
+class MessageDescriptorModifications implements NestedStreamingIterable<File>, MessageContext {
     final FileDescriptorModifications parent;
     final DescriptorProtos.DescriptorProto messageDescriptorProto;
     final Extensions.JavaExtensionOptions messageExtensions;
@@ -48,7 +54,7 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
     }
 
     @Override
-    public Stream<NestedStreamingIterable<PluginProtos.CodeGeneratorResponse.File>> children() {
+    public Stream<NestedStreamingIterable<File>> children() {
         // Preserve the invariant that any nested class will always see an enabled nullable options and messageExtensions
         if (nullableOptions.getEnabled() && messageExtensions.getEnabled()) {
             return messageDescriptorProto
@@ -58,6 +64,37 @@ class MessageDescriptorModifications implements NestedStreamingIterable<PluginPr
         }
         return Stream.empty();
     }
+
+    @Override
+    public Stream<File> stream() {
+        List<File> collect = NestedStreamingIterable.super.stream()// call the default impl explicitly
+                .collect(Collectors.toList());
+        Set<String> insertionPointsThatNeedMixinFiles = collect.stream().map(File::getInsertionPoint)
+                .filter(InsertionPointPrefix.custom_mixin_interface_scope::matchesInsertionPointStr)
+                .collect(Collectors.toSet());
+        return Stream.of(
+                insertionPointsThatNeedMixinFiles
+                        .stream()
+                        .flatMap(this::createCustomMixinInterface),
+                collect.stream())
+                .flatMap(Function.identity());
+    }
+
+    private Stream<File> createCustomMixinInterface(String insertionPointStr) {
+        return Stream.of(buildMixinFile(insertionPointStr), includeMixinOnInterface(insertionPointStr));
+    }
+
+    private File includeMixinOnInterface(String insertionPointStr) {
+        return InsertionPointPrefix.interface_extends
+                .fileBuilderFor(getFileDescriptorProto(),getMessageDescriptorProto())
+                .setContent(InsertionPointPrefix.custom_mixin_interface_scope(getFileDescriptorProto(), getMessageDescriptorProto()))
+                .build();
+    }
+
+    private File buildMixinFile(String insertionPointStr) {
+        return InsertionPoint.customMixinFile(getFileDescriptorProto(), getMessageDescriptorProto());
+    }
+
 
     private FieldDescriptorModifications generateChild(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
         return new FieldDescriptorModifications(this, fieldDescriptorProto);

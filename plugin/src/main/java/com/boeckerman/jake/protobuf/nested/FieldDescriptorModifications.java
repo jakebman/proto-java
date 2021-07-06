@@ -1,7 +1,7 @@
 package com.boeckerman.jake.protobuf.nested;
 
-import com.boeckerman.jake.protobuf.CodeGeneratorUtils;
 import com.boeckerman.jake.protobuf.InsertionPoint.InsertionPointPrefix;
+import com.boeckerman.jake.protobuf.domains.Types;
 import com.boeckerman.jake.protobuf.nested.contexts.FieldContext;
 import com.boeckerman.jake.protobuf.nested.contexts.MessageContext;
 import com.google.protobuf.DescriptorProtos;
@@ -22,12 +22,12 @@ class FieldDescriptorModifications implements NestedStreamingIterable<File>, Fie
 
     @Override
     public Stream<File> stream() {
-        if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(getNullableOptions().getPrimitiveSuffix())) {
-            return Stream.of(fileBuilderFor(InsertionPointPrefix.class_scope)
+        if (Types.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(getNullableOptions().getPrimitiveSuffix())) {
+            return Stream.of(fileBuilderFor(InsertionPointPrefix.custom_mixin_interface_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize that we need to do something with primitive " + fieldDescriptorProto.getName())
                     .build());
-        } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(getNullableOptions().getObjectSuffix())) {
-            return Stream.of(fileBuilderFor(InsertionPointPrefix.class_scope)
+        } else if (!Types.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(getNullableOptions().getObjectSuffix())) {
+            return Stream.of(fileBuilderFor(InsertionPointPrefix.custom_mixin_interface_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else {

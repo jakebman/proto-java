@@ -1,6 +1,7 @@
 package com.boeckerman.jake.protobuf;
 
 import com.boeckerman.jake.protobuf.Extensions.JavaExtensionOptions.NullableOptions;
+import com.boeckerman.jake.protobuf.domains.Types;
 
 import java.util.List;
 import java.util.Map;
@@ -84,11 +85,11 @@ public class CodeGeneratorImpl implements CodeGenerator {
                                               FileDescriptorProto fileDescriptorProto,
                                               DescriptorProto descriptorProto,
                                               FieldDescriptorProto fieldDescriptorProto) {
-        if(CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())){
+        if(Types.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())){
             return Stream.of(InsertionPoint.InsertionPointPrefix.class_scope.fileBuilderFor(fileDescriptorProto, descriptorProto)
                     .setContent("//"+ this.getClass().getName() + " - Recognize primitive we need to work on " + fieldDescriptorProto.getName())
                     .build());
-        } else if(!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())){
+        } else if(!Types.isPrimitive(fieldDescriptorProto.getType()) && fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())){
             return Stream.of(InsertionPoint.InsertionPointPrefix.class_scope.fileBuilderFor(fileDescriptorProto, descriptorProto)
                     .setContent("//"+ this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());

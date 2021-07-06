@@ -2,8 +2,8 @@ package com.boeckerman.jake.protobuf;
 
 import junit.framework.TestCase;
 
-import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.CamelCase;
-public class CodeGeneratorUtilsTest extends TestCase {
+import static com.boeckerman.jake.protobuf.PathAndFileUtils.CamelCase;
+public class PathAndFileUtilsTest extends TestCase {
 
     public void testCamelCase() {
         assertEquals("", CamelCase(""));

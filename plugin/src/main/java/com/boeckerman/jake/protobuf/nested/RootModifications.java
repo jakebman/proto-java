@@ -1,13 +1,16 @@
 package com.boeckerman.jake.protobuf.nested;
 
 import com.boeckerman.jake.protobuf.CodeGenerator;
-import com.boeckerman.jake.protobuf.CodeGeneratorUtils;
 import com.boeckerman.jake.protobuf.nested.contexts.RootContext;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -33,6 +36,12 @@ public class RootModifications implements CodeGenerator, NestedStreamingIterable
         this.invocationParameters = new InvocationParameters(request.getParameter());
     }
 
+    public static Function<String, FileDescriptorProto> fileNameToProtoFileDescriptorLookup(List<FileDescriptorProto> protoFileList) {
+        Map<String, FileDescriptorProto> lookup = protoFileList.stream()
+                .collect(Collectors.toMap(FileDescriptorProto::getName, Function.identity()));
+        return lookup::get;
+    }
+
     @Override // CodeGenerator
     public CodeGeneratorResponse generate() {
         return CodeGeneratorResponse.newBuilder()
@@ -46,7 +55,7 @@ public class RootModifications implements CodeGenerator, NestedStreamingIterable
         return request
                 .getFileToGenerateList()
                 .stream() // Stream<String> is useless, but we can translate it:
-                .map(CodeGeneratorUtils.fileNameToProtoFileDescriptorLookup(this.request.getProtoFileList()))
+                .map(fileNameToProtoFileDescriptorLookup(this.request.getProtoFileList()))
                 .map(this::generateChild);
     }
 
