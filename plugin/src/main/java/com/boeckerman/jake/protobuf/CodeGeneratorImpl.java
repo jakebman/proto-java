@@ -1,8 +1,10 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.Context.*;
-import com.boeckerman.jake.protobuf.Extensions.JavaExtensionOptions;
-import com.boeckerman.jake.protobuf.Extensions.JavaExtensionOptions.NullableOptionsOrBuilder;
+import com.boeckerman.jake.protobuf.Context.FieldContext;
+import com.boeckerman.jake.protobuf.Context.FileContext;
+import com.boeckerman.jake.protobuf.Context.MessageContext;
+import com.boeckerman.jake.protobuf.Context.RootContext;
+import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOptionsOrBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +14,6 @@ import java.util.stream.Stream;
 
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import static com.google.protobuf.DescriptorProtos.MessageOptions;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.Feature;
@@ -60,7 +61,8 @@ public class CodeGeneratorImpl implements CodeGenerator {
     }
 
     private Stream<File> applyNullableOptions(MessageContext messageContext) {
-        if (!messageContext.javaExtensionOptions().getNullableOptionals().getEnabled()) {
+        // TODO: after re-organizing the extensions protobuf file, this method is garbage.
+        if (!messageContext.javaExtensionOptions().getEnabled()) {
             return Stream.empty();
         }
         return messageContext.descriptorProto().getFieldList()
@@ -71,7 +73,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
     }
 
     private Stream<File> applyNullableOptions(FieldContext fieldContext) {
-        NullableOptionsOrBuilder nullableOptionals = fieldContext.javaExtensionOptions().getNullableOptionals();
+        NullableOptionsOrBuilder nullableOptionals = fieldContext.fieldExtension().getNullable();
         if (CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getPrimitiveSuffix())) {
             return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize primitive we need to work on " + fieldContext.fieldDescriptorProto().getName())
@@ -80,19 +82,6 @@ public class CodeGeneratorImpl implements CodeGenerator {
             return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldContext.fieldDescriptorProto().getName())
                     .build());
-        } else {
-            return Stream.empty();
-        }
-    }
-
-    private Stream<File> addInterfaceCommentIfOptionsEnabled(MessageContext messageContext) {
-        MessageOptions options = messageContext.descriptorProto().getOptions();
-        if (!options.hasExtension(Extensions.javaHelper)) {
-            return Stream.empty();
-        }
-        JavaExtensionOptions extension = options.getExtension(Extensions.javaHelper);
-        if (extension.getEnabled()) {
-            return Stream.of(addInterfaceComment(messageContext));
         } else {
             return Stream.empty();
         }
