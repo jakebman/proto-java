@@ -5,6 +5,17 @@ import com.google.protobuf.compiler.PluginProtos;
 
 public class Context {
 
+    // so we can get the file builder for any sufficiently-deep context
+    interface GeneratedResponseFileCoordinates {
+        // the two record fields that insertion points need to uniquely identify a file edit point
+        DescriptorProtos.FileDescriptorProto fileDescriptorProto();
+        DescriptorProtos.DescriptorProto descriptorProto();
+
+        default PluginProtos.CodeGeneratorResponse.File.Builder fileBuilderFor(InsertionPoint insertionPoint) {
+            return insertionPoint.fileBuilderFor(this);
+        }
+    }
+
     static record RootContext(PluginProtos.CodeGeneratorRequest request) {
         FileContext withFile(DescriptorProtos.FileDescriptorProto fileDescriptorProto) {
             return new FileContext(request, fileDescriptorProto);
@@ -26,7 +37,8 @@ public class Context {
     static record MessageContext(PluginProtos.CodeGeneratorRequest request,
                                  DescriptorProtos.FileDescriptorProto fileDescriptorProto,
                                  DescriptorProtos.DescriptorProto descriptorProto,
-                                 Extensions.JavaExtensionOptions javaExtensionOptions) {
+                                 Extensions.JavaExtensionOptions javaExtensionOptions)
+            implements GeneratedResponseFileCoordinates {
         FieldContext withField(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
             return new FieldContext(request, fileDescriptorProto, descriptorProto, javaExtensionOptions, fieldDescriptorProto);
         }
@@ -36,7 +48,8 @@ public class Context {
                                DescriptorProtos.FileDescriptorProto fileDescriptorProto,
                                DescriptorProtos.DescriptorProto descriptorProto,
                                Extensions.JavaExtensionOptions javaExtensionOptions,
-                               DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
+                               DescriptorProtos.FieldDescriptorProto fieldDescriptorProto)
+            implements GeneratedResponseFileCoordinates {
 
     }
 }

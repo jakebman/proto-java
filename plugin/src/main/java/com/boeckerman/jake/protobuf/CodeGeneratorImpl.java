@@ -73,11 +73,11 @@ public class CodeGeneratorImpl implements CodeGenerator {
     private Stream<File> applyNullableOptions(Context.FieldContext fieldContext) {
         Extensions.JavaExtensionOptions.NullableOptionsOrBuilder nullableOptionals = fieldContext.javaExtensionOptions().getNullableOptionals();
         if(CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getPrimitiveSuffix())){
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fieldContext.fileDescriptorProto(), fieldContext.descriptorProto())
+            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//"+ this.getClass().getName() + " - Recognize primitive we need to work on " + fieldContext.fieldDescriptorProto().getName())
                     .build());
         } else if(!CodeGeneratorUtils.isPrimitive(fieldContext.fieldDescriptorProto().getType()) && fieldContext.fieldDescriptorProto().getName().endsWith(nullableOptionals.getObjectSuffix())){
-            return Stream.of(InsertionPoint.class_scope.fileBuilderFor(fieldContext.fileDescriptorProto(), fieldContext.descriptorProto())
+            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
                     .setContent("//"+ this.getClass().getName() + " - Recognize Object we need to work on " + fieldContext.fieldDescriptorProto().getName())
                     .build());
         } else {
