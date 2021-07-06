@@ -1,6 +1,6 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.Extensions.JavaExtensionOptions;
+import com.boeckerman.jake.protobuf.Extensions.JavaMessageExtensions;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
 import com.boeckerman.jake.protobuf.Extensions.JavaGlobalOptions;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
@@ -45,10 +45,10 @@ public class Context {
 
     }
 
-    static JavaExtensionOptions enhancedExtensionOptions(JavaGlobalOptions javaGlobalOptions,
+    static JavaMessageExtensions enhancedExtensionOptions(JavaGlobalOptions javaGlobalOptions,
                                                          DescriptorProto descriptorProto) {
 
-        JavaExtensionOptions.Builder builder = javaGlobalOptions
+        JavaMessageExtensions.Builder builder = javaGlobalOptions
                 .getGlobals()
                 .toBuilder()
                 .mergeFrom(descriptorProto
@@ -64,17 +64,17 @@ public class Context {
     static record MessageContext(CodeGeneratorRequest request,
                                  FileDescriptorProto fileDescriptorProto,
                                  DescriptorProto descriptorProto,
-                                 JavaExtensionOptions javaExtensionOptions)
+                                 JavaMessageExtensions javaMessageExtensions)
             implements GeneratedResponseFileCoordinates {
 
         FieldContext withFieldDescriptor(FieldDescriptorProto fieldDescriptorProto) {
             return new FieldContext(request, fileDescriptorProto, descriptorProto,
                     fieldDescriptorProto,
-                    enhancedFieldExtensions(javaExtensionOptions, fieldDescriptorProto));
+                    enhancedFieldExtensions(javaMessageExtensions, fieldDescriptorProto));
         }
     }
 
-    static JavaFieldExtension enhancedFieldExtensions(JavaExtensionOptions javaExtensionOptions, FieldDescriptorProto fieldDescriptorProto) {
+    static JavaFieldExtension enhancedFieldExtensions(JavaMessageExtensions javaExtensionOptions, FieldDescriptorProto fieldDescriptorProto) {
         JavaFieldExtension javaFieldExtension = fieldDescriptorProto.getOptions().getExtension(Extensions.javaHelper);
 
         JavaFieldExtension.Builder builder = javaExtensionOptions.getOverrides()

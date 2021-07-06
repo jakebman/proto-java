@@ -10,7 +10,7 @@ extend google.protobuf.FileOptions {
 }
 
 extend google.protobuf.MessageOptions {
-  optional JavaExtensionOptions java_helper_message = 52532;
+  optional JavaMessageExtensions java_helper_message = 52532;
 }
 
 extend google.protobuf.FieldOptions {
@@ -19,14 +19,16 @@ extend google.protobuf.FieldOptions {
 
 message JavaGlobalOptions {
   optional bool enabled = 1 [default = false]; // can't accidentally use this extension
-  optional JavaExtensionOptions globals = 2;
+
+  optional JavaMessageExtensions globals = 2;
 }
 
 message JavaFieldExtension {
   optional bool enabled = 1 [default = true];
 
   message NullableOptions {
-    //    optional bool enabled = 1 [default = true];
+    // optional bool enabled = 1 [default = true];
+
     // Any optional primitive field which has the suffix "${primitive_suffix}" will have a boxed alias without that suffix
     optional string primitive_suffix = 2 [default = "_primitive"];
     // Any optional object-like (String, Enum, Message) field which has the suffix "${object_suffix}"
@@ -37,13 +39,16 @@ message JavaFieldExtension {
 
   message ListOptions {
     // optional bool enabled = 1 [default = true];
+
     optional bool friendly_getter = 2 [default = true]; // getter drops the "List" from getXList
-    optional bool add_all_accepts_stream = 3 [default = true]; // create .addAllX(Stream<X>)
+    optional bool stream_getter = 3 [default = true]; // .getXStream()
+    optional bool add_all_accepts_stream = 4 [default = true]; // create .addAllX(Stream<X>)
   }
   optional ListOptions list = 2;
 
   message AliasOptions {
     //    optional bool enabled = 1 [default = true];
+
     repeated string aliases = 2;
     repeated string getters = 3;
     repeated string setters = 4;
@@ -51,16 +56,17 @@ message JavaFieldExtension {
   optional AliasOptions alias = 4;
 
   message BooleanOptions {
-    //    optional bool enabled = 1 [default = true];
+    // optional bool enabled = 1 [default = true];
+
     optional bool use_is_prefix = 2 [default = true]; // allow a boolean field to have an isX alias
     // It behaves very similarly to alias_options.getters += "isX", but you don't have to figure out the x field's name each time
   }
   optional BooleanOptions boolean = 5;
 }
 
-// TODO: better name
-message JavaExtensionOptions {
+message JavaMessageExtensions {
   optional bool enabled = 1 [default = true];
+
   repeated string implements = 2;
   optional JavaFieldExtension overrides = 3;
 
@@ -69,7 +75,6 @@ message JavaExtensionOptions {
   message Experimental {
     // none of these are currently implemented
     optional bool with_ers = 1;
-    optional bool via_distinct_default_interfaces = 2;
   }
   optional Experimental experimental = 99;
 }
