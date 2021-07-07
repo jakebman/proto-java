@@ -1,8 +1,8 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.Extensions.JavaMessageExtensions;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
 import com.boeckerman.jake.protobuf.Extensions.JavaGlobalOptions;
+import com.boeckerman.jake.protobuf.Extensions.JavaMessageExtensions;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -10,14 +10,20 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 
 public class Context {
 
+    // Hidden parameter: Normally, this plugin has an opt-in system.
+    public static final String ENABLE_EVERYWHERE = "ENABLE_EVERYWHERE";
+
     static record RootContext(CodeGeneratorRequest request) {
         FileContext withFile(FileDescriptorProto fileDescriptorProto) {
-            return new FileContext(request, fileDescriptorProto, javaExtensionOptionsFor(fileDescriptorProto));
+            return new FileContext(request, fileDescriptorProto, javaExtensionOptionsFor(request, fileDescriptorProto));
         }
     }
 
-    static JavaGlobalOptions javaExtensionOptionsFor(FileDescriptorProto fileDescriptorProto) {
-        return fileDescriptorProto.getOptions().getExtension(Extensions.javaHelperGlobals);
+    static JavaGlobalOptions javaExtensionOptionsFor(CodeGeneratorRequest request, FileDescriptorProto fileDescriptorProto) {
+        boolean run_everywhere = request.getParameter().contains(ENABLE_EVERYWHERE);
+        JavaGlobalOptions extension = fileDescriptorProto.getOptions().getExtension(Extensions.javaHelperGlobals);
+        if (run_everywhere) return extension.toBuilder().setEnabled(true).build();
+        return extension;
     }
 
     static record FileContext(CodeGeneratorRequest request,
@@ -33,7 +39,7 @@ public class Context {
     }
 
     static JavaMessageExtensions enhancedExtensionOptions(JavaGlobalOptions javaGlobalOptions,
-                                                         DescriptorProto descriptorProto) {
+                                                          DescriptorProto descriptorProto) {
 
         JavaMessageExtensions.Builder builder = javaGlobalOptions
                 .getGlobals()
