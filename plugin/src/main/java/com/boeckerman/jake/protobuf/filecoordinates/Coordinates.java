@@ -84,8 +84,7 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
     }
 
     String javaClassName() {
-        // TODO: THIS IS THE BUG SOURCE. Should use classNameForMessageDescriptor(descriptor())
-        return insertionPoint.mangleJavaClassName(modificationFileBaseName());
+        return insertionPoint.mangleJavaClassName(classNameForMessageDescriptor(descriptorProto()));
     }
 
     String javaPackage() {
