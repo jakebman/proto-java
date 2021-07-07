@@ -1,5 +1,7 @@
-package com.boeckerman.jake.protobuf;
+package com.boeckerman.jake.protobuf.filecoordinates;
 
+import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
+import com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
 import java.util.concurrent.Semaphore;
@@ -8,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static com.boeckerman.jake.protobuf.GeneratedResponseFileCoordinates.JAVA_FILENAME_SUFFIX;
+import static com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates.JAVA_FILENAME_SUFFIX;
 
 public class CustomMixinFile {
 
@@ -38,7 +40,7 @@ public class CustomMixinFile {
     }
 
     /**
-     * See also: {@link com.boeckerman.jake.protobuf.GeneratedResponseFileCoordinates#modificationFileAndPath()},
+     * See also: {@link GeneratedResponseFileCoordinates#modificationFileAndPath()},
      * which builds a string path
      */
     private static StringBuilder mixinFullClassNameFor(GeneratedResponseFileCoordinates fileIdentifier) {

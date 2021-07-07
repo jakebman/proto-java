@@ -7,6 +7,8 @@ import com.boeckerman.jake.protobuf.Context.RootContext;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.ListOptions;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOptions;
+import com.boeckerman.jake.protobuf.filecoordinates.CustomMixinFile;
+import com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 
 import java.util.List;

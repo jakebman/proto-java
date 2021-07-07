@@ -1,5 +1,6 @@
-package com.boeckerman.jake.protobuf;
+package com.boeckerman.jake.protobuf.filecoordinates;
 
+import com.boeckerman.jake.protobuf.CodeGeneratorUtils;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -8,7 +9,7 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 import java.util.regex.Pattern;
 
 // so we can get the file builder for any sufficiently-deep context
-interface GeneratedResponseFileCoordinates {
+public interface GeneratedResponseFileCoordinates {
     // the two record fields that insertion points need to uniquely identify a file edit point
     FileDescriptorProto fileDescriptorProto();
 

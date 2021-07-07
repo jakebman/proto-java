@@ -3,6 +3,7 @@ package com.boeckerman.jake.protobuf;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
 import com.boeckerman.jake.protobuf.Extensions.JavaGlobalOptions;
 import com.boeckerman.jake.protobuf.Extensions.JavaMessageExtensions;
+import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
