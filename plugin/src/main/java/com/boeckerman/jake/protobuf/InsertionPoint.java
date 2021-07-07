@@ -6,8 +6,12 @@ import org.apache.commons.lang3.StringUtils;
 public enum InsertionPoint {
     builder_implements,
     builder_scope,
-    class_scope {
-        // class_scope does not add a typeName suffix - it's for the whole proto file
+    class_scope,
+    interface_extends,
+    message_implements,
+    outer_class_scope {
+        // The outer class scope does not take a typeName suffix
+        // It's for the whole proto file!
         public String insertionPointFor(GeneratedResponseFileCoordinates fileIdentifier) {
             return this.name();
         }
@@ -16,9 +20,6 @@ public enum InsertionPoint {
             return StringUtils.equals(this.name(), file.getInsertionPoint());
         }
     },
-    interface_extends,
-    message_implements,
-    outer_class_scope,
     enum_scope,
 
     // provided by this plugin
