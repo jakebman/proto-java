@@ -18,7 +18,7 @@ public class CodeGeneratorTest {
         UNDER_TEST.generate(PluginProtos.CodeGeneratorRequest.getDefaultInstance());
     }
 
-    @Test(expected =  AssertionError.class)
+    @Test
     public void testSimple() throws IOException {
         String FILE_NAME = "foo";
 
