@@ -10,14 +10,11 @@ import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOption
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
-import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.Feature;
@@ -59,7 +56,8 @@ public class CodeGeneratorImpl implements CodeGenerator {
                         .getFieldList()
                         .stream()
                         .map(messageContext::withFieldDescriptor)
-                        .flatMap(this::modifications));
+                        .flatMap(this::modifications)
+                        .mapMulti(CustomMixinFile.alsoEmitMixinFileWhenNeeded(messageContext)));
     }
 
     private File addInterfaceComment(MessageContext messageContext) {
@@ -91,13 +89,13 @@ public class CodeGeneratorImpl implements CodeGenerator {
         if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType())
                 && fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())) {
 
-            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
+            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.custom_mixin_interface_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize primitive we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType())
                 && fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())) {
 
-            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.class_scope)
+            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.custom_mixin_interface_scope)
                     .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
                     .build());
         } else {
