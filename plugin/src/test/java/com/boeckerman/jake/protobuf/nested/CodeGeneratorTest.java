@@ -5,17 +5,20 @@ import com.boeckerman.jake.protobuf.CodeGeneratorImpl;
 import com.boeckerman.jake.protobuf.Context;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
-import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.io.IOException;
 
-public class CodeGeneratorTest extends TestCase {
+public class CodeGeneratorTest {
     CodeGenerator UNDER_TEST = new CodeGeneratorImpl();
 
+    @Test
     public void testEmpty() {
         UNDER_TEST.generate(PluginProtos.CodeGeneratorRequest.getDefaultInstance());
     }
 
+    @Test
     public void testSimple() throws IOException {
         String FILE_NAME = "foo";
 
@@ -38,7 +41,7 @@ public class CodeGeneratorTest extends TestCase {
                         .build())
                 .build());
         com.google.protobuf.util.JsonFormat.printer().appendTo(generated, System.out);
-        assertTrue("The file modified needs to be an OrBuilder",
+        Assert.assertTrue("The file modified needs to be an OrBuilder",
                 generated
                         .getFileList()
                         .stream()
