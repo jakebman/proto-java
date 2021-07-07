@@ -22,7 +22,7 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
     static String JAVA_FILENAME_SUFFIX = ".java";
 
     String modificationFileAndPath() {
-        StringBuilder out = new StringBuilder(modificationJavaPackagePath());
+        StringBuilder out = new StringBuilder(CodeGeneratorUtils.packageToPath(javaPackage()));
 
         if (out.length() > 0) {
             out.append(CodeGeneratorUtils.OBLIGATORY_PATH_SEPARATOR);
@@ -64,10 +64,6 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
             return insertionPoint.name();
         }
         return insertionPoint.name() + INSERTION_POINT_JOIN + insertionPointTypeName();
-    }
-
-    String modificationJavaPackagePath() { // TODO: inline me!
-        return CodeGeneratorUtils.packageToPath(javaPackage());
     }
 
     // see modificationFileAndPath

@@ -5,14 +5,16 @@ POJOs Plan:
 	https://github.com/beeceej/protoform
 
 Idle question:
-	TODO: abilty to move builder to not be nested? -Probably not (because private access), but?
-	TODO: how to tell in proto3 if value was sent/notSent if the value assigned was default?
+	Can we make the builder not be nested? -Probably not because private access, for instance.
+	[answered] how to tell in proto3 if value was sent/notSent if the value assigned was default?
 		Can we do something with `optional`?
 		Or is this a meaningless question?
+		Answer: proto3 has optional. Just not documented in the proto3 main doc. Search this doc for the implementing_proto3_presence.md link.
 	Do reserved enum values/names generate java enum entries? Seems improbable, because there's no correlation for name/value relation. But maybe RESERVED_33, RESERVED_34?
 	https://developers.google.com/protocol-buffers/docs/proto3#importing_definitions - when searching for messages, how hard does the compiler need to care about them?
 		Presumably java fails because you need a fully-qualified type name, and if you don't have the message, then you can't introspect the java package.
 		Or is the failure in `import public`?
+		There doesn't appear to be any problem when using protobuf-maven-plugin. Probably handled by the tool.
 	"proto2 enums cannot be used in proto3 syntax."
 	    What, exactly, does this mean? A message written in proto3 syntax cannot reference an enum written in proto2 syntax? If that, why can a proto3 message reference a proto2 message that has an enum? Is there some weird default value rule?  Is that rule that proto3 enums are always expected to be default zero, and proto2 messages choose default differently? Probably this.
 	protobuf-maven-plugin/compile-mojo <writeDescriptorSet>/<attachDescriptorSet>. What do these do? Why not default true? Useful? Not?
@@ -45,7 +47,7 @@ Idle question:
 			* One maven project that implements the protobuf plugin spec, above. (Everything manual. Wish there were a library)
 			* One maven project that encapsulates the .proto files, and using xolstice's maven plugin to plug the plugin project into protoc compiler
 			* Voilà! Built!
-			* TODO: figure out how to pass params through protoc to my plugin: https://github.com/protocolbuffers/protobuf/issues/4759
+			* Figured out how to pass params through protoc to my plugin: https://github.com/protocolbuffers/protobuf/issues/4759 - we pass the params through the <args> entry in <protocPlugin>, which is interpreted as a String[] args entry. Toss that on top of the params, and we're golden.
 
 
 Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
