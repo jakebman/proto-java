@@ -52,19 +52,22 @@ public class CodeGeneratorImpl implements CodeGenerator {
     }
 
     private Stream<File> modifications(MessageContext messageContext) {
-        return StreamUtil.concat(
-                addInterfaceComment(messageContext),
-                messageContext.descriptorProto()
-                        .getFieldList()
-                        .stream()
-                        .map(messageContext::withFieldDescriptor)
-                        .flatMap(this::modifications)
-                        .mapMulti(CustomMixinFile.alsoEmitMixinFileWhenNeeded(messageContext)));
+        if (messageContext.javaMessageExtensions().getEnabled()) {
+            return StreamUtil.concat(
+                    addMarkerInterfaceAndComment(messageContext),
+                    messageContext.descriptorProto()
+                            .getFieldList()
+                            .stream()
+                            .map(messageContext::withFieldDescriptor)
+                            .flatMap(this::modifications)
+                            .mapMulti(CustomMixinFile.alsoEmitMixinFileWhenNeeded(messageContext)));
+        }
+        return Stream.empty();
     }
 
-    private File addInterfaceComment(MessageContext messageContext) {
+    private File addMarkerInterfaceAndComment(MessageContext messageContext) {
         return messageContext.fileBuilderFor(InsertionPoint.message_implements)
-                .setContent(Touched.class.getName() + ", // added by this protoc plugin")
+                .setContent(Touched.class.getName() + ", //" + Touched.MESSAGE)
                 .build();
     }
 
