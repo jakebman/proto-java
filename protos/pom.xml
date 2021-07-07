@@ -99,7 +99,7 @@
                   <artifactId>plugin</artifactId>
                   <version>${project.version}</version>
                   <mainClass>com.boeckerman.jake.protobuf.Plugin</mainClass>
-                  <args>DEBUG</args>
+                  <args>DEBUG,ENABLE_EVERYWHERE</args>
                 </protocPlugin>
               </protocPlugins>
             </configuration>
