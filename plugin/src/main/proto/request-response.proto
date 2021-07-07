@@ -1,0 +1,14 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.boeckerman.jake.protobuf";
+package boeckerman.jake.protobuf;
+
+// the IntelliJ proto editor plugin doesn't like this, but the maven plugin brings it in, so this does compile.
+import "google/protobuf/compiler/plugin.proto";
+
+message RequestResponse {
+  google.protobuf.compiler.CodeGeneratorResponse response = 1;
+  google.protobuf.compiler.CodeGeneratorRequest request = 2;
+
+  reserved 15; // For future use: if we figure out some nested message packing scheme, I want a single-byte field id free
+}

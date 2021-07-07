@@ -10,8 +10,10 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 
 public class Context {
 
-    // Hidden parameter: Normally, this plugin has an opt-in system.
-    public static final String ENABLE_EVERYWHERE = "ENABLE_EVERYWHERE";
+    // CLI Parameters:
+    public static final String ENABLE_EVERYWHERE = "ENABLE_EVERYWHERE"; // don't require opt-in
+    public static final String DEBUG = "DEBUG"; // debug output
+    public static final String DEBUG_VERBOSE = "DEBUG_VERBOSE"; // verbose debug output
 
     static record RootContext(CodeGeneratorRequest request) {
         FileContext withFile(FileDescriptorProto fileDescriptorProto) {

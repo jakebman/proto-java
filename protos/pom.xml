@@ -92,12 +92,14 @@
             <artifactId>protobuf-maven-plugin</artifactId>
             <configuration>
               <protocPlugins>
+                <!-- https://www.xolstice.org/protobuf-maven-plugin/examples/protoc-plugin.html -->
                 <protocPlugin>
                   <id>jakeProtoPlugin</id>
                   <groupId>${project.groupId}</groupId>
                   <artifactId>plugin</artifactId>
                   <version>${project.version}</version>
                   <mainClass>com.boeckerman.jake.protobuf.Plugin</mainClass>
+                  <args>DEBUG</args>
                 </protocPlugin>
               </protocPlugins>
             </configuration>
