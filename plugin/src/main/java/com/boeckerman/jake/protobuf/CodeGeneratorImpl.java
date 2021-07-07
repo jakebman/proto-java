@@ -64,7 +64,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
 
     private File addInterfaceComment(MessageContext messageContext) {
         return messageContext.fileBuilderFor(InsertionPoint.message_implements)
-                .setContent("// Marker Comment: this class has opted in to boeckerman.jake.protobuf.java_helper")
+                .setContent(Touched.class.getName() + ", // added by this protoc plugin")
                 .build();
     }
 
