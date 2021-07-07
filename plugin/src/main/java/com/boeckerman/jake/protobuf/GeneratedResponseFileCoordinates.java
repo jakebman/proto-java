@@ -30,19 +30,19 @@ interface GeneratedResponseFileCoordinates {
     }
 
     String JAVA_FILENAME_SUFFIX = ".java";
-    default String fileToModify() {
-        StringBuilder out = new StringBuilder(getJavaPackagePathFor());
+    default String modificationFileAndPath() {
+        StringBuilder out = new StringBuilder(modificationJavaPackagePath());
 
         if (out.length() > 0) {
             out.append(CodeGeneratorUtils.OBLIGATORY_PATH_SEPARATOR);
         }
 
-        out.append(modificationClassName());
+        out.append(modificationFileBaseName());
         out.append(JAVA_FILENAME_SUFFIX);
         return out.toString();
     }
 
-    default String modificationClassName() {
+    default String modificationFileBaseName() {
         DescriptorProtos.FileOptions options = fileDescriptorProto().getOptions();
 
         if (options.getJavaMultipleFiles()) {
@@ -50,15 +50,15 @@ interface GeneratedResponseFileCoordinates {
         } else if (options.hasJavaOuterClassname()) {
             return options.getJavaOuterClassname();
         } else {
-            return outerClassNameForFile(fileDescriptorProto());
+            return outerClassFileBaseNameFor(fileDescriptorProto());
         }
     }
 
-    default String getJavaPackagePathFor() {
-        return CodeGeneratorUtils.packageToPath(getJavaPackage());
+    default String modificationJavaPackagePath() {
+        return CodeGeneratorUtils.packageToPath(javaPackage());
     }
 
-    default String getJavaPackage() {
+    default String javaPackage() {
         FileDescriptorProto fileDescriptorProto = fileDescriptorProto();
         DescriptorProtos.FileOptions options = fileDescriptorProto().getOptions();
 
@@ -75,7 +75,7 @@ interface GeneratedResponseFileCoordinates {
     Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
     String OUTER_CLASS_SUFFIX = "OuterClass";
 
-    static String outerClassNameForFile(FileDescriptorProto fileDescriptorProto) {
+    static String outerClassFileBaseNameFor(FileDescriptorProto fileDescriptorProto) {
         String guess = CodeGeneratorUtils.CamelCase(CodeGeneratorUtils.deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName()));
 
         // minor concern: This might be inefficient.

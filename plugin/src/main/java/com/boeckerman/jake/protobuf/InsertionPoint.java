@@ -33,7 +33,7 @@ public enum InsertionPoint {
 
     public File.Builder fileBuilderFor(GeneratedResponseFileCoordinates fileIdentifier) {
         return File.newBuilder()
-                .setName(fileIdentifier.fileToModify())
+                .setName(fileIdentifier.modificationFileAndPath())
                 .setInsertionPoint(insertionPointFor(fileIdentifier));
     }
 

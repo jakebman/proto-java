@@ -6,8 +6,13 @@ import java.util.concurrent.Semaphore;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
+import static com.boeckerman.jake.protobuf.GeneratedResponseFileCoordinates.JAVA_FILENAME_SUFFIX;
 
 public class CustomMixinFile {
+
+    public static final String MIXIN_SUFFIX = "_Mixin";
 
     // Returns a stateful, synchronized BiConsumer good for a single Stream.mapMulti call
     // This is safe on any stream (including parallel, unordered), HOWEVER, it is also good
@@ -33,7 +38,7 @@ public class CustomMixinFile {
     }
 
     /**
-     * See also: {@link com.boeckerman.jake.protobuf.GeneratedResponseFileCoordinates#fileToModify()},
+     * See also: {@link com.boeckerman.jake.protobuf.GeneratedResponseFileCoordinates#modificationFileAndPath()},
      * which builds a string path
      */
     private static StringBuilder mixinFullClassNameFor(GeneratedResponseFileCoordinates fileIdentifier) {
@@ -46,15 +51,17 @@ public class CustomMixinFile {
     }
 
     private static String mixinClassNameFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return fileIdentifier.modificationClassName() + "_Mixin";
+        return fileIdentifier.modificationFileBaseName() + MIXIN_SUFFIX;
     }
 
     private static String mixinPackageNameFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return fileIdentifier.getJavaPackagePathFor();
+        return fileIdentifier.javaPackage();
     }
 
+    static Pattern TRAILING_JAVA_SUFFIX = Pattern.compile(Pattern.quote(JAVA_FILENAME_SUFFIX) + "$");
+
     private static String mixinFileName(GeneratedResponseFileCoordinates fileIdentifier) {
-        return fileIdentifier.modificationClassName() + "_Mixin";
+        return TRAILING_JAVA_SUFFIX.matcher(fileIdentifier.modificationFileAndPath()).replaceFirst(MIXIN_SUFFIX + JAVA_FILENAME_SUFFIX);
     }
 
     public static File generateMixin(GeneratedResponseFileCoordinates fileIdentifier) {
