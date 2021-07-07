@@ -1,14 +1,19 @@
 package com.boeckerman.jake.protobuf;
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
+import org.apache.commons.lang3.StringUtils;
 
 public enum InsertionPoint {
     builder_implements,
     builder_scope,
     class_scope {
-        // class scope does not take a class suffix
-        public String insertionPointFor(String filename) {
+        // class_scope does not add a typeName suffix - it's for the whole proto file
+        public String insertionPointFor(GeneratedResponseFileCoordinates fileIdentifier) {
             return this.name();
+        }
+
+        public boolean recognizes(File file) {
+            return StringUtils.equals(this.name(), file.getInsertionPoint());
         }
     },
     interface_extends,
@@ -17,24 +22,21 @@ public enum InsertionPoint {
     enum_scope,
 
     // provided by this plugin
-    custom_mixin_file; // would officially be more like "interface_scope"
+    custom_mixin_interface_scope;
 
-    private static File.Builder fileBuilderFor_(GeneratedResponseFileCoordinates fileIdentifier) {
-        return File.newBuilder()
-                .setName(fileIdentifier.fileToModify());
+    public static final String INSERTION_POINT_JOIN = ":";
+
+    public boolean recognizes(File file) {
+        return file.getInsertionPoint().startsWith(this.name() + INSERTION_POINT_JOIN);
     }
 
     public File.Builder fileBuilderFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return fileBuilderFor_(fileIdentifier)
-                .setInsertionPoint(insertionPointFor(fileIdentifier.insertionPointTypename()));
+        return File.newBuilder()
+                .setName(fileIdentifier.fileToModify())
+                .setInsertionPoint(insertionPointFor(fileIdentifier));
     }
-
 
     public String insertionPointFor(GeneratedResponseFileCoordinates fileIdentifier) {
-        return insertionPointFor(fileIdentifier.insertionPointTypename());
-    }
-
-    public String insertionPointFor(String insertionPointTypename) {
-        return this.name() + ":" + insertionPointTypename;
+        return this.name() + INSERTION_POINT_JOIN + fileIdentifier.insertionPointTypeName();
     }
 }

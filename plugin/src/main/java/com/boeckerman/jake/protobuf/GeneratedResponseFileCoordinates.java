@@ -19,7 +19,7 @@ interface GeneratedResponseFileCoordinates {
     }
 
     String PACKAGE_SEPERATOR = ".";
-    default String insertionPointTypename() {
+    default String insertionPointTypeName() {
         String messageDescriptorTypename = descriptorProto().getName();
         FileDescriptorProto fileDescriptorProto = fileDescriptorProto();
 
