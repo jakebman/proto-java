@@ -52,14 +52,14 @@ public class ListFields implements FieldHandler {
     }
 
     private String listOf(String boxed) {
-        return "List<%s>".formatted(boxed);
+        return "java.util.List<%s>".formatted(boxed);
     }
 
 
     private File addAllAcceptsStream() {
         // nb: `%1$s` references the first argument to formatted
         return builderContext("""
-                Builder addAll%1$s(Stream<%2$s> value) // Stream-friendly addAll
+                Builder addAll%1$s(java.util.stream.Stream<%2$s> value) // Stream-friendly addAll
                 {
                     return addAll%1$s(value.collect(java.util.stream.Collectors.toList()));
                 }
@@ -70,7 +70,7 @@ public class ListFields implements FieldHandler {
     private File friendlyGetter() {
         // nb: `%1$s` references the first argument to formatted
         return mixinContext("""
-                default List<%2$s> get%1$s() // cleaner getter - drop the -List from getXXXList
+                default java.util.List<%2$s> get%1$s() // cleaner getter - drop the -List from getXXXList
                 {
                     return get%1$sList();
                 }
@@ -81,7 +81,7 @@ public class ListFields implements FieldHandler {
     private File streamGetter() {
         // nb: `%1$s` references the first argument to formatted
         return mixinContext("""
-                default Stream<%2$s> get%1$sStream() // convenient stream accessor
+                default java.util.stream.Stream<%2$s> get%1$sStream() // convenient stream accessor
                 {
                     return get%1$sList().stream();
                 }
