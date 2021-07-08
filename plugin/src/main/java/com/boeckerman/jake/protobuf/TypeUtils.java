@@ -5,12 +5,14 @@ import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordin
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TypeUtils {
 
@@ -50,23 +52,58 @@ public class TypeUtils {
         }
     }
 
-    public static TypeReference generateLookupTableFor(Collection<DescriptorProtos.FileDescriptorProto> protoFileList) {
+    public static TypeReference generateLookupTableFor(Collection<FileDescriptorProto> protoFileList) {
         Map<String, TypeNames> objects = protoFileList
                 .stream()
-                .flatMap(fileDescriptorProto -> fileDescriptorProto
-                        .getMessageTypeList()
-                        .stream()
-                        .map(descriptorProto ->
-                                new simple(fileDescriptorProto, descriptorProto)))
+                .flatMap(TypeUtils::allNestedNames)
                 .collect(Collectors.toMap(x -> "." + protoTypeName(x), ClassLike::new));
         return new TypeReference(objects);
+    }
+
+    static Stream<GeneratedResponseFileCoordinates> allNestedNames(FileDescriptorProto root) {
+        return StreamUtil.<GeneratedResponseFileCoordinates>concat(
+                root
+                        .getMessageTypeList()
+                        .stream()
+                        .map(descriptorProto -> new simple(root, descriptorProto))
+                        .flatMap(TypeUtils::allNestedNames),
+                root.getEnumTypeList()
+                        .stream()
+                        .map(enumDescriptorProto ->
+                                HACK_coordinatesForEnumDescriptor(root, enumDescriptorProto.getName()))
+        );
+    }
+
+    static Stream<GeneratedResponseFileCoordinates> allNestedNames(GeneratedResponseFileCoordinates root) {
+        return StreamUtil.<GeneratedResponseFileCoordinates>concat(
+                root,
+                root.descriptorProto()
+                        .getNestedTypeList()
+                        .stream()
+                        .map(descriptorProto -> new simple(root.fileDescriptorProto(), descriptorProto.toBuilder()
+                                .setName(javaClassName(root) + PACKAGE_SEPERATOR + descriptorProto.getName()).build())) // TODO: does the nested message know its proper name?
+                        .flatMap(TypeUtils::allNestedNames),
+                root.descriptorProto()
+                        .getEnumTypeList()
+                        .stream()
+                        .map(enumDescriptorProto ->
+                                HACK_coordinatesForEnumDescriptor(root.fileDescriptorProto(),
+                                        javaClassName(root) + PACKAGE_SEPERATOR + enumDescriptorProto.getName())));
+    }
+
+    // TODO: unwise shim, to allow protoTypeName to work
+    private static simple HACK_coordinatesForEnumDescriptor(FileDescriptorProto fileDescriptorProto, String name) {
+        return new simple(fileDescriptorProto,
+                DescriptorProto.newBuilder()
+                        .setName(name)
+                        .build());
     }
 
     public static String PACKAGE_SEPERATOR = ".";
 
     public static String protoTypeName(GeneratedResponseFileCoordinates coordinates) {
         String messageDescriptorTypename = coordinates.descriptorProto().getName();
-        DescriptorProtos.FileDescriptorProto fileDescriptorProto = coordinates.fileDescriptorProto();
+        FileDescriptorProto fileDescriptorProto = coordinates.fileDescriptorProto();
 
         if (fileDescriptorProto.hasPackage()) {
             return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + messageDescriptorTypename;
