@@ -8,24 +8,45 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TypeUtils {
 
-    public static final Map<String, JavaTypeNames> PRIMITIVES = Collections.unmodifiableMap(
-            Arrays.stream(Type.values())
-                    .filter(TypeUtils::isPrimitive)
-                    .collect(Collectors.toMap(TypeUtils::textName, BoxingType::fromType)));
-
-    public static Map<String, JavaTypeNames> generateLookupTableFor(CodeGeneratorRequest request) {
+    public static TypeReference generateLookupTableFor(CodeGeneratorRequest request) {
         return generateLookupTableFor(request.getProtoFileList());
     }
 
-    public static Map<String, JavaTypeNames> generateLookupTableFor(Collection<DescriptorProtos.FileDescriptorProto> protoFileList) {
+    public static class TypeReference implements Function<DescriptorProtos.FieldDescriptorProto, JavaTypeNames> {
+        Map<String, JavaTypeNames> lookupTable;
+
+        public TypeReference(Map<String, JavaTypeNames> lookupTable) {
+            this.lookupTable = lookupTable;
+        }
+
+        @Override
+        public JavaTypeNames apply(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
+
+            return isPrimitive(fieldDescriptorProto.getType()) ?
+                    TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()) :
+                    lookupTable.get(fieldDescriptorProto.getTypeName());
+        }
+
+        public String describe() {
+            return lookupTable.entrySet()
+                    .stream()
+                    .map(e -> e.getKey() + " => " + e.getValue().describe())
+                    .collect(Collectors.joining("\n"));
+        }
+
+        public JavaTypeNames lookupMessageType(String messageName) {
+            return lookupTable.get(messageName);
+        }
+    }
+
+    public static TypeReference generateLookupTableFor(Collection<DescriptorProtos.FileDescriptorProto> protoFileList) {
         Map<String, JavaTypeNames> objects = protoFileList
                 .stream()
                 .flatMap(fileDescriptorProto -> fileDescriptorProto
@@ -34,8 +55,7 @@ public class TypeUtils {
                         .map(descriptorProto ->
                                 new simple(fileDescriptorProto, descriptorProto)))
                 .collect(Collectors.toMap(TypeUtils::protoTypeName, TypeUtils::messageTypeNames));
-        objects.putAll(PRIMITIVES);
-        return objects;
+        return new TypeReference(objects);
     }
 
     private static String textName(Type type) {

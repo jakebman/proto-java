@@ -9,8 +9,6 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 
-import java.util.Map;
-
 public class Context {
 
     // CLI Parameters:
@@ -18,7 +16,7 @@ public class Context {
     public static final String DEBUG = "DEBUG"; // debug output
     public static final String DEBUG_VERBOSE = "DEBUG_VERBOSE"; // verbose debug output
 
-    static record ExecutionContext(Map<String, TypeUtils.JavaTypeNames> typeNames) {
+    static record ExecutionContext(TypeUtils.TypeReference typeNames) {
         public ExecutionContext(CodeGeneratorRequest request) {
             this(TypeUtils.generateLookupTableFor(request));
         }
@@ -44,8 +42,7 @@ public class Context {
     static record FileContext(CodeGeneratorRequest request,
                               ExecutionContext executionContext,
                               FileDescriptorProto fileDescriptorProto,
-                              JavaGlobalOptions javaGlobalOptions
-    ) {
+                              JavaGlobalOptions javaGlobalOptions) {
         public FileContext(RootContext rootContext, FileDescriptorProto fileDescriptorProto) {
             this(rootContext.request, rootContext.executionContext,
                     fileDescriptorProto, javaExtensionOptionsFor(rootContext.request, fileDescriptorProto));
@@ -108,8 +105,7 @@ public class Context {
                                FileDescriptorProto fileDescriptorProto,
                                DescriptorProto descriptorProto,
                                FieldDescriptorProto fieldDescriptorProto,
-                               JavaFieldExtension fieldExtension
-    )
+                               JavaFieldExtension fieldExtension)
             implements GeneratedResponseFileCoordinates {
         public FieldContext(MessageContext messageContext, FieldDescriptorProto fieldDescriptorProto) {
             this(messageContext.request, messageContext.executionContext, messageContext.fileDescriptorProto, messageContext.descriptorProto,
