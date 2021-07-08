@@ -111,7 +111,7 @@ public class NullableFields implements Supplier<Stream<File>> {
 
     private File nullableSetter() {
         return builderContext("""
-                default %s
+                %s
                 {
                     if(%s) return %s;
                     else return null;
