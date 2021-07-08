@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+
+option java_multiple_files = true;
+enum exampleRepeatedEnum {
+  exampleRepeatedEnum_NOT_PRESENT = 0;
+}
+// In the same order as google.protobuf.FieldDescriptorProto.Type, because I copy-pasted!
+// see the imported file:
+import "google/protobuf/descriptor.proto";
+message AllRepeatedTypes {
+  repeated double TYPE_DOUBLE = 1;
+  repeated float TYPE_FLOAT = 2;
+  // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT64 if
+  // negative values are likely.
+  repeated int64  TYPE_INT64 = 3;
+  repeated uint64 TYPE_UINT64 = 4;
+  // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT32 if
+  // negative values are likely.
+  repeated int32 TYPE_INT32 = 5;
+  repeated fixed64 TYPE_FIXED64 = 6;
+  repeated fixed32 TYPE_FIXED32 = 7;
+  repeated bool TYPE_BOOL = 8;
+  repeated string TYPE_STRING = 9;
+  // Tag-delimited aggregate.
+  // Group type is deprecated and not supported in proto3. However, Proto3
+  // implementations should still be able to parse the group wire format and
+  // treat group fields as unknown fields.
+  //group TYPE_GROUP = 10;
+
+  // "repeated" doesn't apply to oneofs
+  // repeated oneof TYPE_ONEOF{ repeated string foo = 322; string bar = 333;};
+  repeated AllRepeatedTypes TYPE_MESSAGE = 11;  // Length-delimited aggregate.
+
+  // New in version 2.
+  repeated bytes TYPE_BYTES = 12;
+  repeated uint32 TYPE_UINT32 = 13;
+  repeated exampleRepeatedEnum TYPE_ENUM = 14;
+  repeated sfixed32 TYPE_SFIXED32 = 15;
+  repeated sfixed64 TYPE_SFIXED64 = 16;
+  repeated sint32 TYPE_SINT32 = 17;  // Uses ZigZag encoding.
+  repeated sint64 TYPE_SINT64 = 18;  // Uses
+}

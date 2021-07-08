@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+
+option java_multiple_files = true;
+enum exampleOptionalEnum {
+  exampleOptionalEnum_NOT_PRESENT = 0;
+}
+// In the same order as google.protobuf.FieldDescriptorProto.Type, because I copy-pasted!
+// see the imported file:
+import "google/protobuf/descriptor.proto";
+message AllOptionalTypes {
+  optional double TYPE_DOUBLE = 1;
+  optional float TYPE_FLOAT = 2;
+  // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT64 if
+  // negative values are likely.
+  optional int64  TYPE_INT64 = 3;
+  optional uint64 TYPE_UINT64 = 4;
+  // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT32 if
+  // negative values are likely.
+  optional int32 TYPE_INT32 = 5;
+  optional fixed64 TYPE_FIXED64 = 6;
+  optional fixed32 TYPE_FIXED32 = 7;
+  optional bool TYPE_BOOL = 8;
+  optional string TYPE_STRING = 9;
+  // Tag-delimited aggregate.
+  // Group type is deprecated and not supported in proto3. However, Proto3
+  // implementations should still be able to parse the group wire format and
+  // treat group fields as unknown fields.
+  //group TYPE_GROUP = 10;
+
+  // neither optional or repeated applies to oneofs, or their elements
+  // optional oneof TYPE_ONEOF{ optional string foo = 322; string bar = 333;};
+  optional AllOptionalTypes TYPE_MESSAGE = 11;  // Length-delimited aggregate.
+
+  // New in version 2.
+  optional bytes TYPE_BYTES = 12;
+  optional uint32 TYPE_UINT32 = 13;
+  optional exampleOptionalEnum TYPE_ENUM = 14;
+  optional sfixed32 TYPE_SFIXED32 = 15;
+  optional sfixed64 TYPE_SFIXED64 = 16;
+  optional sint32 TYPE_SINT32 = 17;  // Uses ZigZag encoding.
+  optional sint64 TYPE_SINT64 = 18;  // Uses
+}

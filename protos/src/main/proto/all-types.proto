@@ -3,7 +3,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 enum exampleEnum {
-  NOT_PRESENT = 0;
+  exampleEnum_NOT_PRESENT = 0;
 }
 // In the same order as google.protobuf.FieldDescriptorProto.Type, because I copy-pasted!
 // see the imported file:

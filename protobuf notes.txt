@@ -73,6 +73,9 @@ Proto3 Notes: https://developers.google.com/protocol-buffers/docs/proto3
 	`required` is not a thing in proto3, ditto `optional` (or is it? https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto#L223)
 	enum:
 		Uses words instead of numeric values, but is otherwise encoded as number (int32; which optimizes small values and de-optimizes negative values)
+		MUST:
+		    zero-value (which is also first(?)) MUST be semantically available to represent "this value was not sent". Style recommends the name {ENUM_NAME}_UNSPECIFIED
+		    all top-level enums MUST have globally-unique names in the compilation invocation (nesting is a way around this, but style guide recommends prefix>
 		style: "Each enum value should end with a semicolon, not a comma. Prefer prefixing enum values instead of surrounding them in an enclosing message. The zero value enum should have the suffix UNSPECIFIED."
 		First word is required to be 0. Is also therefore the default.
 		`option allow_alias = true;` to allow 2 words to map to single number. (the java language note implies this may have become the default)
