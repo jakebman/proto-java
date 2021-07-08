@@ -134,7 +134,13 @@ public class TypeUtils {
         Double("double"),
         Float("float"),
         Boolean("boolean"),
-        Long("long");
+        Long("long"),
+
+        String("java.lang.String") {
+            public boolean isPrimitive() {
+                return false;
+            }
+        };
 
 
         public final String primitiveName;
@@ -170,7 +176,8 @@ public class TypeUtils {
                         TYPE_INT32, TYPE_UINT32, TYPE_SINT32 // int
                         -> Integer;
                 case TYPE_BOOL -> Boolean;
-                default -> throw new UnsupportedOperationException("Cannot get Boxing Type for non-primitive " + type);
+                case TYPE_STRING -> String;
+                default -> null;// TODO: log an error
             };
         }
     }

@@ -20,7 +20,11 @@ public class ListFields implements FieldHandler {
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
 
         this.names = new NameVariants(fieldContext);
-        this.typeNames = fieldContext.executionContext().typeNames().apply(fieldDescriptorProto);
+        TypeUtils.TypeReference typeReference = fieldContext.executionContext().typeNames();
+        this.typeNames = typeReference.apply(fieldDescriptorProto);
+        if(this.typeNames == null) {
+            throw new Error(typeReference + " does not have " + fieldDescriptorProto);
+        }
     }
 
     @Override
@@ -33,33 +37,47 @@ public class ListFields implements FieldHandler {
         if (listOptions.getAddAllAcceptsStream()) {
             builder.add(addAllAcceptsStream());
         }
-//        if (listOptions.getFriendlyGetter()) {
-//            builder.add(friendlyGetter());
-//        }
-//        if (listOptions.getStreamGetter()) {
-//            builder.add(streamGetter());
-//        }
+        if (listOptions.getFriendlyGetter()) {
+            builder.add(friendlyGetter());
+        }
+        if (listOptions.getStreamGetter()) {
+            builder.add(streamGetter());
+        }
         return builder.build();
     }
 
 
     private File addAllAcceptsStream() {
+        // nb: `%1$s` references the first argument to formatted
         return builderContext("""
-                void %s (Stream<%s> value) // Stream-friendly addAll
+                void addAll%1$s(Stream<%2$s> value) // Stream-friendly addAll
                 {
-                    %s
+                    addAll%1$s(value.collect(java.util.stream.Collectors.toList()));
                 }
-                """.formatted("addAll" + names.name(),
-                typeNames.boxed(),
-                methodInvoke("addAll", names.name(), "value.collect(java.util.stream.Collectors.toList())")));
+                """.formatted(names.name(),
+                typeNames.boxed()));
     }
 
     private File friendlyGetter() {
-        return null;
+        // nb: `%1$s` references the first argument to formatted
+        return mixinContext("""
+                List<%2$s> get%1$s() // cleaner getter - drop the -List from getXXXList
+                {
+                    return get%1$sList();
+                }
+                """.formatted(names.name(),
+                typeNames.boxed()));
     }
 
     private File streamGetter() {
-        return null;
+        // nb: `%1$s` references the first argument to formatted
+        return mixinContext("""
+                Stream<%2$s> get%1$sStream() // convenient stream accessor 
+                {
+                    return get%1$sList().stream();
+                }
+                """.formatted(names.name(),
+                typeNames.boxed()));
     }
 
     @Override
