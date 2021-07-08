@@ -1,6 +1,7 @@
 package com.boeckerman.jake.protobuf;
 
 import com.boeckerman.jake.protobuf.Context.FieldContext;
+import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOptions;
 import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
@@ -14,38 +15,41 @@ import static com.boeckerman.jake.protobuf.TypeUtils.isPrimitive;
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 
 public class NullableFields implements FieldHandler {
-    private final String nullableName;
     private final FieldContext fieldContext;
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
-    private final Extensions.JavaFieldExtension.NullableOptions nullableOptions;
+    private final NullableOptions nullableOptions;
     private final boolean primitive;
+    private final TypeUtils.JavaTypeNames javaTypeNames;
 
-    private final String protoName;
+    private final String original_name_from_proto_file; // looks like original_name_from_proto_file_{some_suffix}
+    private final String protoGeneratedName; // looks like OriginalNameFromProtoFile{SomeSuffix}
+    private final String nullableName; // looks like OriginalNameFromProtoFile
 
     public NullableFields(FieldContext fieldContext) {
         this.fieldContext = fieldContext;
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
         this.nullableOptions = fieldContext.fieldExtension().getNullable();
         this.primitive = isPrimitive(fieldDescriptorProto.getType());
-        this.protoName = CamelCase(fieldDescriptorProto.getName());
+        this.javaTypeNames = fieldContext.executionContext().typeNames().get(fieldDescriptorProto.getTypeName());
+        this.original_name_from_proto_file = fieldDescriptorProto.getName();
+        this.protoGeneratedName = CamelCase(original_name_from_proto_file);
 
         this.nullableName = CamelCase(primitive ?
-                StringUtils.removeEnd(fieldDescriptorProto.getName(), nullableOptions.getPrimitiveSuffix()) :
-                StringUtils.removeEnd(fieldDescriptorProto.getName(), nullableOptions.getObjectSuffix()));
+                StringUtils.removeEnd(original_name_from_proto_file, nullableOptions.getPrimitiveSuffix()) :
+                StringUtils.removeEnd(original_name_from_proto_file, nullableOptions.getObjectSuffix()));
     }
 
     @Override
     public Stream<File> get() {
-        //nb: can't use protoName here - it's been CamelCase`d
-        boolean hasObjectSuffix = fieldDescriptorProto.getName().endsWith(nullableOptions.getObjectSuffix());
-        boolean hasPrimitiveSuffix = fieldDescriptorProto.getName().endsWith(nullableOptions.getPrimitiveSuffix());
+        boolean hasObjectSuffix = original_name_from_proto_file.endsWith(nullableOptions.getObjectSuffix());
+        boolean hasPrimitiveSuffix = original_name_from_proto_file.endsWith(nullableOptions.getPrimitiveSuffix());
 
         if (fieldDescriptorProto.getLabel() != LABEL_OPTIONAL) {
             if (hasPrimitiveSuffix || hasObjectSuffix) {
                 return warningResponse(MessageFormat.format(
                         "// Heads up! the field {0} isn't optional, but would otherwise be covered by {1}",
-                        fieldDescriptorProto.getName(),
-                        Extensions.JavaFieldExtension.NullableOptions.class.getName()));
+                        original_name_from_proto_file,
+                        NullableOptions.class.getName()));
             }
             return Stream.empty();
         }
@@ -60,7 +64,7 @@ public class NullableFields implements FieldHandler {
         } else {
             return warningResponse(MessageFormat.format(
                     "// Heads up! the field {0} is {1}, but has the {2} suffix ({3})",
-                    fieldDescriptorProto.getName(),
+                    original_name_from_proto_file,
                     (primitive ? "primitive" : "an object"),
                     (!primitive ? "primitive" : "object"),
                     CodeGeneratorUtils.debugPeek(nullableOptions)));
@@ -73,24 +77,23 @@ public class NullableFields implements FieldHandler {
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     private File has() {
-        return mixinContext(methodDeclarationHeader("boolean", "has", protoName).append(";").toString());
+        return mixinContext(methodDeclarationHeader("boolean", "has", protoGeneratedName).append(";").toString());
     }
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     private File getter() {
-        return mixinContext(methodDeclarationHeader(protoType(), "get", protoName).append(";").toString());
+        return mixinContext(methodDeclarationHeader(protoType(), "get", protoGeneratedName).append(";").toString());
     }
 
-    // needed for the mixin to compile. Both the Builder and the Message already have this defined
+    // NOT needed for the mixin to compile (the setter gets directly injected into the Builder, which already has this defined.
     private File setter() {
-        return builderContext(methodDeclarationHeader("void", "set", protoName, protoType() + " value").append(";").toString());
+        return builderContext(methodDeclarationHeader("void", "set", protoGeneratedName, protoType() + " value").append(";").toString());
     }
 
-    // needed for the mixin to compile. Both the Builder and the Message already have this defined
+    // NOT needed for the mixin to compile (the setter gets directly injected into the Builder, which already has this defined.
     private File clearer() {
-        return builderContext(methodDeclarationHeader("void", "clear", protoName).append(";").toString());
+        return builderContext(methodDeclarationHeader("void", "clear", protoGeneratedName).append(";").toString());
     }
-
 
     private File nullableSetter() {
         return builderContext("""
@@ -101,10 +104,9 @@ public class NullableFields implements FieldHandler {
                 }
                 """.formatted(
                 methodDeclarationHeader("void", "set", nullableName, nullableType() + " value"),
-                methodInvoke("clear", protoName),
-                methodInvoke("set", protoName, "value")));
+                methodInvoke("clear", protoGeneratedName),
+                methodInvoke("set", protoGeneratedName, "value")));
     }
-
 
     private File nullableGetter() {
         return mixinContext("""
@@ -115,28 +117,16 @@ public class NullableFields implements FieldHandler {
                 }
                 """.formatted(
                 methodDeclarationHeader(nullableType(), "get", nullableName),
-                methodInvoke("has", protoName),
-                methodInvoke("get", protoName)));
+                methodInvoke("has", protoGeneratedName),
+                methodInvoke("get", protoGeneratedName)));
     }
 
     private String nullableType() {
-        String type;
-        if (primitive) {
-            type = TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()).toString();
-        } else {
-            type = fieldDescriptorProto.getTypeName();// TODO: likely not going to work due to type name impedence between proto and java
-        }
-        return type;
+        return javaTypeNames.boxed();
     }
 
     private String protoType() {
-        String type;
-        if (primitive) {
-            type = TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()).primitive();
-        } else {
-            type = fieldDescriptorProto.getTypeName();// TODO: likely not going to work due to type name impedence between proto and java
-        }
-        return type;
+        return javaTypeNames.primitive();
     }
 
 
