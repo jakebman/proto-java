@@ -1,6 +1,7 @@
 package com.boeckerman.jake.protobuf;
 
 import com.boeckerman.jake.protobuf.Context.FieldContext;
+import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
 import com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
@@ -16,7 +17,7 @@ import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.CamelCase;
 import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.isPrimitive;
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 
-public class NullableFields implements Supplier<Stream<File>> {
+public class NullableFields implements FieldHandler {
     private final String nullableName;
     private final FieldContext fieldContext;
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
@@ -143,51 +144,8 @@ public class NullableFields implements Supplier<Stream<File>> {
     }
 
 
-    private Stream<File> warningResponse(String content) {
-        return Stream.of(mixinContext(content));
+    @Override
+    public GeneratedResponseFileCoordinates context() {
+        return fieldContext;
     }
-
-    private File mixinContext(String content) {
-        return fieldContext
-                .fileBuilderFor(InsertionPoint.custom_mixin_interface_scope)
-                .setContent(content)
-                .build();
-    }
-
-    private File builderContext(String content) {
-        return fieldContext
-                .fileBuilderFor(InsertionPoint.builder_scope)
-                .setContent(content)
-                .build();
-    }
-
-
-    // String getFoo()
-    // Object flyBar(String one, String two)
-    static StringBuilder methodDeclarationHeader(Object type, String verb, String fieldName, String... args) {
-        StringBuilder out = new StringBuilder();
-        out.append(type);
-        out.append(" ");
-        methodInvoke(verb, fieldName, out, args);
-        return out;
-    }
-
-    private static StringBuilder methodInvoke(String verb, String fieldName, String... args) {
-        return methodInvoke(verb, fieldName, new StringBuilder(), args);
-    }
-
-    // flyBar(String one, String two)
-    // OR
-    // setBar(one, two)
-    private static StringBuilder methodInvoke(String verb, String fieldName, StringBuilder out, String... args) {
-        return methodName(verb, fieldName, out)
-                .append(Arrays.stream(args).collect(Collectors.joining(",", "(", ")")));
-    }
-
-    private static StringBuilder methodName(String verb, String fieldName, StringBuilder out) {
-        out.append(verb);
-        out.append(fieldName);
-        return out;
-    }
-
 }
