@@ -84,7 +84,7 @@ public class TypeUtils {
 
 
     public static String javaClassName(GeneratedResponseFileCoordinates fileCoordinates) {
-        return javaClassName(fileCoordinates);
+        return javaClassName(fileCoordinates.descriptorProto());
     }
 
     public static String javaClassName(DescriptorProto descriptorProto) {
