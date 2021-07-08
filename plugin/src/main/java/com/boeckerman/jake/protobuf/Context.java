@@ -42,11 +42,13 @@ public class Context {
     }
 
     static record FileContext(CodeGeneratorRequest request,
+                              ExecutionContext executionContext,
                               FileDescriptorProto fileDescriptorProto,
-                              JavaGlobalOptions javaGlobalOptions,
-                              ExecutionContext executionContext) {
+                              JavaGlobalOptions javaGlobalOptions
+    ) {
         public FileContext(RootContext rootContext, FileDescriptorProto fileDescriptorProto) {
-            this(rootContext.request, fileDescriptorProto, javaExtensionOptionsFor(rootContext.request, fileDescriptorProto), rootContext.executionContext);
+            this(rootContext.request, rootContext.executionContext,
+                    fileDescriptorProto, javaExtensionOptionsFor(rootContext.request, fileDescriptorProto));
         }
 
         MessageContext withMessage(DescriptorProto descriptorProto) {
@@ -72,16 +74,15 @@ public class Context {
     }
 
     static record MessageContext(CodeGeneratorRequest request,
+                                 ExecutionContext executionContext,
                                  FileDescriptorProto fileDescriptorProto,
                                  DescriptorProto descriptorProto,
-                                 JavaMessageExtensions javaMessageExtensions,
-                                 ExecutionContext executionContext)
+                                 JavaMessageExtensions javaMessageExtensions)
             implements GeneratedResponseFileCoordinates {
         public MessageContext(FileContext fileContext, DescriptorProto descriptorProto) {
-            this(fileContext.request, fileContext.fileDescriptorProto,
-                    descriptorProto,
-                    enhancedExtensionOptions(fileContext.javaGlobalOptions, descriptorProto),
-                    fileContext.executionContext);
+            this(fileContext.request, fileContext.executionContext, fileContext.fileDescriptorProto,
+                    descriptorProto, enhancedExtensionOptions(fileContext.javaGlobalOptions, descriptorProto)
+            );
         }
 
         FieldContext withFieldDescriptor(FieldDescriptorProto fieldDescriptorProto) {
@@ -103,17 +104,16 @@ public class Context {
     }
 
     static record FieldContext(CodeGeneratorRequest request,
+                               ExecutionContext executionContext,
                                FileDescriptorProto fileDescriptorProto,
                                DescriptorProto descriptorProto,
                                FieldDescriptorProto fieldDescriptorProto,
-                               JavaFieldExtension fieldExtension,
-                               ExecutionContext executionContext)
+                               JavaFieldExtension fieldExtension
+    )
             implements GeneratedResponseFileCoordinates {
         public FieldContext(MessageContext messageContext, FieldDescriptorProto fieldDescriptorProto) {
-            this(messageContext.request, messageContext.fileDescriptorProto, messageContext.descriptorProto,
-                    fieldDescriptorProto,
-                    enhancedFieldExtensions(messageContext.javaMessageExtensions, fieldDescriptorProto),
-                    messageContext.executionContext);
+            this(messageContext.request, messageContext.executionContext, messageContext.fileDescriptorProto, messageContext.descriptorProto,
+                    fieldDescriptorProto, enhancedFieldExtensions(messageContext.javaMessageExtensions, fieldDescriptorProto));
         }
     }
 }
