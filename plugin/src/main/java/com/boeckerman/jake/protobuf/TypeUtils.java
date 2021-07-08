@@ -9,6 +9,7 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +29,8 @@ public class TypeUtils {
         }
 
         public TypeNames lookup(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
+            // If type_name is set, [fieldDescriptorProto.type] need not be set.  If both [type] and type_name
+            // are set, [type] must be one of TYPE_ENUM, TYPE_MESSAGE or TYPE_GROUP.
             Type type = fieldDescriptorProto.getType();
             TypeNames output = BoxingType.hasType(type) ?
                     new ProtoAndJavaTypeNames(type) :
@@ -165,7 +168,12 @@ public class TypeUtils {
 
         @Override
         public boolean isPrimitive() {
-            return boxingType.isPrimitive(); // very likely always true, but this is delegation
+            return boxingType.isPrimitive(); // Some boxing types are not primitive
+        }
+
+        @Override
+        public DescriptorProto descriptorProto() {
+            return null; // Boxing types are not for messages, and do not have message descriptors
         }
     }
 
@@ -237,7 +245,7 @@ public class TypeUtils {
                 case TYPE_STRING -> String;
                 case TYPE_BYTES -> Bytes;
                 case TYPE_GROUP, TYPE_MESSAGE, TYPE_ENUM -> null;
-                default -> null;// TODO: log an error
+                default -> null;// TODO: log a similar error to isPrimitive
             };
         }
     }
@@ -259,6 +267,18 @@ public class TypeUtils {
 
     interface TypeNames extends JavaTypeNames {
         String proto_type_name();
+
+        @Nullable
+        DescriptorProto descriptorProto();
+
+        default DescriptorProto descriptorProtoDefault() {
+            DescriptorProto descriptorProto = descriptorProto();
+            if (descriptorProto == null) {
+                return DescriptorProto.getDefaultInstance();
+            } else {
+                return descriptorProto;
+            }
+        }
 
         default String describe() {
             String primitive = primitive();
@@ -296,9 +316,11 @@ public class TypeUtils {
         };
     }
 
-    static record ClassLike(String javaName, String proto_type_name) implements TypeNames {
+    static record ClassLike(String javaName,
+                            String proto_type_name,
+                            DescriptorProto descriptorProto) implements TypeNames {
         public ClassLike(GeneratedResponseFileCoordinates protoIdentifier) {
-            this(javaFullClassName(protoIdentifier), protoTypeName(protoIdentifier));
+            this(javaFullClassName(protoIdentifier), protoTypeName(protoIdentifier), protoIdentifier.descriptorProto());
         }
 
         @Override

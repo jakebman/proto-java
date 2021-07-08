@@ -29,6 +29,21 @@ public class ListFields implements FieldHandler {
         if (fieldDescriptorProto.getLabel() != Label.LABEL_REPEATED) {
             return Stream.empty();
         }
+        // from descriptor.proto:
+        // For maps fields:
+        //     map<KeyType, ValueType> map_field = 1;
+        // The parsed descriptor looks like:
+        //     message MapFieldEntry {
+        //         option map_entry = true;
+        //         optional KeyType key = 1;
+        //         optional ValueType value = 2;
+        //     }
+        //     repeated MapFieldEntry map_field = 1;
+        //
+        if (typeNames.descriptorProtoDefault().getOptions().getMapEntry()) {
+            return Stream.empty();
+        }
+
         Stream.Builder<File> builder = Stream.builder();
 
         if (listOptions.getAddAllAcceptsStream()) {
@@ -48,7 +63,7 @@ public class ListFields implements FieldHandler {
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     private File getter() {
-        return mixinContext(methodDeclarationHeader(listOf(typeNames.boxed()), "get", names.name()).append(";").toString());
+        return mixinContext(methodDeclarationHeader(listOf(typeNames.boxed()), "get", names.name() + "List").append(";").toString());
     }
 
     private String listOf(String boxed) {
