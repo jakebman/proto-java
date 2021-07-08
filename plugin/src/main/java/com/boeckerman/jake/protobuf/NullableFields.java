@@ -95,9 +95,9 @@ public class NullableFields implements Supplier<Stream<File>> {
     }
 
 
-    private File nullableGetter() {
-        return mixinContext("""
-                default %s
+    private File nullableSetter() {
+        return builderContext("""
+                default %s // nullable field setter, which forwards to traditional builder methods
                 {
                     if(value == null) %s;
                     else %s;
@@ -109,9 +109,9 @@ public class NullableFields implements Supplier<Stream<File>> {
     }
 
 
-    private File nullableSetter() {
-        return builderContext("""
-                %s
+    private File nullableGetter() {
+        return mixinContext("""
+                %s // nullable field getter which forwards to traditional getters
                 {
                     if(%s) return %s;
                     else return null;
