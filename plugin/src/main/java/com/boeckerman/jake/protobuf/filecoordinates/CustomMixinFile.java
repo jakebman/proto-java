@@ -1,12 +1,14 @@
 package com.boeckerman.jake.protobuf.filecoordinates;
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.Semaphore;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint.outer_class_scope;
 
 public class CustomMixinFile {
 
@@ -43,8 +45,17 @@ public class CustomMixinFile {
     }
 
     public static File generateMixin(Coordinates coordinates) {
-        return coordinates.fileBuilder()
-                .clearInsertionPoint() // this is where we *create* that insertion point!
+        File.Builder builder = coordinates.fileBuilder();
+        boolean isGeneratingAFullMixinFile = builder.getName().endsWith(MIXIN_SUFFIX + ".java");
+        if (isGeneratingAFullMixinFile) {
+            // this is where we *create* the insertion points for this file!
+            // TODO: nothing keeps someone from setting java_outer_class=asdf_Mixin
+            builder.clearInsertionPoint();
+        } else {
+            // If we're in an outer class
+            builder.setInsertionPoint(coordinates.withInsertionPoint(outer_class_scope).insertionPointFor());
+        }
+        return builder
                 .setContent("""
                         package %s;
                         public interface %s {
