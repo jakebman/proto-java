@@ -17,7 +17,7 @@ public enum InsertionPoint {
     enum_scope,
 
     // provided by this plugin
-    custom_mixin_interface_scope("_Mixin");
+    custom_mixin_interface_scope(CustomMixinFile.MIXIN_SUFFIX);
 
     // suffix added to a message's name to determine the class this insertion point is about
     // (This should only really matter for custom_mixin_interface_scope, which wants to talk about
