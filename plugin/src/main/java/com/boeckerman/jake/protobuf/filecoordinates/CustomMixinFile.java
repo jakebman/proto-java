@@ -57,15 +57,22 @@ public class CustomMixinFile {
         }
         return builder
                 .setContent("""
-                        package %s;
+                        %s
                         public interface %s {
                             // @@protoc_insertion_point(%s)
                         }
                         """.formatted(
-                        coordinates.javaPackage(),
+                        (isGeneratingAFullMixinFile ? packageDeclaration(coordinates) : ""),
                         coordinates.javaClassName(),
                         coordinates.insertionPointFor()
                 ))
                 .build();
+    }
+
+    private static String packageDeclaration(Coordinates coordinates) {
+        String javaPackage = coordinates.javaPackage();
+        if (StringUtils.isNotBlank(javaPackage))
+            return "package %s;".formatted(javaPackage);
+        return "";
     }
 }
