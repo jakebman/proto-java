@@ -99,11 +99,11 @@ public class NullableFields implements FieldHandler {
         return builderContext("""
                 %s // nullable field setter, which forwards to traditional builder methods
                 {
-                    if(value == null) %s;
-                    else %s;
+                    if(value == null) return %s;
+                    else return %s;
                 }
                 """.formatted(
-                methodDeclarationHeader("void", "set", nameVariants.nullableName(), nullableType() + " value"),
+                methodDeclarationHeader("Builder", "set", nameVariants.nullableName(), nullableType() + " value"),
                 methodInvoke("clear", nameVariants.protoGeneratedName()),
                 methodInvoke("set", nameVariants.protoGeneratedName(), "value")));
     }

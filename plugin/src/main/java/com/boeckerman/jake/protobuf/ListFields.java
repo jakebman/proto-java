@@ -34,22 +34,34 @@ public class ListFields implements FieldHandler {
         if (listOptions.getAddAllAcceptsStream()) {
             builder.add(addAllAcceptsStream());
         }
-        if (listOptions.getFriendlyGetter()) {
-            builder.add(friendlyGetter());
-        }
-        if (listOptions.getStreamGetter()) {
-            builder.add(streamGetter());
+        if (listOptions.getFriendlyGetter() || listOptions.getStreamGetter()) {
+            builder.add(getter());
+            if (listOptions.getFriendlyGetter()) {
+                builder.add(friendlyGetter());
+            }
+            if (listOptions.getStreamGetter()) {
+                builder.add(streamGetter());
+            }
         }
         return builder.build();
+    }
+
+    // needed for the mixin to compile. Both the Builder and the Message already have this defined
+    private File getter() {
+        return mixinContext(methodDeclarationHeader(listOf(typeNames.boxed()), "get", names.name()).append(";").toString());
+    }
+
+    private String listOf(String boxed) {
+        return "List<%s>".formatted(boxed);
     }
 
 
     private File addAllAcceptsStream() {
         // nb: `%1$s` references the first argument to formatted
         return builderContext("""
-                void addAll%1$s(Stream<%2$s> value) // Stream-friendly addAll
+                Builder addAll%1$s(Stream<%2$s> value) // Stream-friendly addAll
                 {
-                    addAll%1$s(value.collect(java.util.stream.Collectors.toList()));
+                    return addAll%1$s(value.collect(java.util.stream.Collectors.toList()));
                 }
                 """.formatted(names.name(),
                 typeNames.boxed()));
@@ -58,7 +70,7 @@ public class ListFields implements FieldHandler {
     private File friendlyGetter() {
         // nb: `%1$s` references the first argument to formatted
         return mixinContext("""
-                List<%2$s> get%1$s() // cleaner getter - drop the -List from getXXXList
+                default List<%2$s> get%1$s() // cleaner getter - drop the -List from getXXXList
                 {
                     return get%1$sList();
                 }
@@ -69,7 +81,7 @@ public class ListFields implements FieldHandler {
     private File streamGetter() {
         // nb: `%1$s` references the first argument to formatted
         return mixinContext("""
-                Stream<%2$s> get%1$sStream() // convenient stream accessor 
+                default Stream<%2$s> get%1$sStream() // convenient stream accessor
                 {
                     return get%1$sList().stream();
                 }
