@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+
+option java_multiple_files = true;
+enum exampleEnum {
+  NOT_PRESENT = 0;
+}
+// In the same order as google.protobuf.FieldDescriptorProto.Type, because I copy-pasted!
+// see the imported file:
+import "google/protobuf/descriptor.proto";
+message AllTypes {
+  double TYPE_DOUBLE = 1;
+  float TYPE_FLOAT = 2;
+  // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT64 if
+  // negative values are likely.
+  int64  TYPE_INT64 = 3;
+  uint64 TYPE_UINT64 = 4;
+  // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT32 if
+  // negative values are likely.
+  int32 TYPE_INT32 = 5;
+  fixed64 TYPE_FIXED64 = 6;
+  fixed32 TYPE_FIXED32 = 7;
+  bool TYPE_BOOL = 8;
+  string TYPE_STRING = 9;
+  // Tag-delimited aggregate.
+  // Group type is deprecated and not supported in proto3. However, Proto3
+  // implementations should still be able to parse the group wire format and
+  // treat group fields as unknown fields.
+  //group TYPE_GROUP = 10;
+  oneof TYPE_ONEOF{string foo =322; string bar=333;};
+  AllTypes TYPE_MESSAGE = 11;  // Length-delimited aggregate.
+
+  // New in version 2.
+  bytes TYPE_BYTES = 12;
+  uint32 TYPE_UINT32 = 13;
+  exampleEnum TYPE_ENUM = 14;
+  sfixed32 TYPE_SFIXED32 = 15;
+  sfixed64 TYPE_SFIXED64 = 16;
+  sint32 TYPE_SINT32 = 17;  // Uses ZigZag encoding.
+  sint64 TYPE_SINT64 = 18;  // Uses
+}
