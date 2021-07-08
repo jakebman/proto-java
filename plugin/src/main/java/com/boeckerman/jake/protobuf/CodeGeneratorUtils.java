@@ -12,7 +12,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 public class CodeGeneratorUtils {
@@ -52,58 +51,14 @@ public class CodeGeneratorUtils {
         return lookup::get;
     }
 
-    public static boolean isPrimitive(FieldDescriptorProto.Type type) {
-        return switch (type) {
-            case TYPE_DOUBLE, TYPE_FLOAT, // floating-point
-                    TYPE_FIXED64, TYPE_SFIXED64, // fixed-point, wide
-                    TYPE_INT64, TYPE_UINT64, TYPE_SINT64, // ints, wide
-                    TYPE_FIXED32, TYPE_SFIXED32,  // fixed-point
-                    TYPE_INT32, TYPE_UINT32, TYPE_SINT32, // int
-                    TYPE_BOOL -> true;
-            case TYPE_STRING, TYPE_GROUP, TYPE_MESSAGE, TYPE_BYTES, TYPE_ENUM -> false;
-            // Protobuf is allowed to add new Enums to this class. In that case, java throws this error, but without a message
-            // https://docs.oracle.com/javase/specs/jls/se16/html/jls-15.html#jls-15.28.2
-            default -> throw new IncompatibleClassChangeError(type + " was not a valid value at compile time");
-        };
-    }
-
     public static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().includingDefaultValueFields().omittingInsignificantWhitespace();
+
     public static String debugPeek(Message nullableOptionals) {
         try {
             return JSON_PRINTER.print(nullableOptionals);
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
             return TextFormat.printer().shortDebugString(nullableOptionals);
-        }
-    }
-
-    public enum BoxingType {
-        Integer("int"),
-        Double("double"),
-        Float("float"),
-        Boolean("boolean"),
-        Long("long");
-
-
-        public final String primitiveName;
-
-        BoxingType(String primitiveName) {
-            this.primitiveName = primitiveName;
-        }
-
-        static BoxingType fromType(FieldDescriptorProto.Type type) {
-            return switch (type) {
-                case TYPE_DOUBLE -> Double;
-                case TYPE_FLOAT -> Float;
-                case  TYPE_FIXED64, TYPE_SFIXED64, // fixed-point, wide
-                        TYPE_INT64, TYPE_UINT64, TYPE_SINT64 // ints, wide
-                        -> Long;
-                case TYPE_FIXED32, TYPE_SFIXED32,  // fixed-point
-                        TYPE_INT32, TYPE_UINT32, TYPE_SINT32 // int
-                    -> Integer;
-                case TYPE_BOOL -> Boolean;
-                default -> throw new UnsupportedOperationException("Cannot get Boxing Type for non-primitive " + type);
-            };
         }
     }
 }

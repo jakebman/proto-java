@@ -1,6 +1,7 @@
 package com.boeckerman.jake.protobuf.filecoordinates;
 
 import com.boeckerman.jake.protobuf.CodeGeneratorUtils;
+import com.boeckerman.jake.protobuf.TypeUtils;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 
@@ -21,6 +22,7 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
 
     static String JAVA_FILENAME_SUFFIX = ".java";
 
+    // see javaFullClassNameBuilder
     String modificationFileAndPath() {
         StringBuilder out = new StringBuilder(CodeGeneratorUtils.packageToPath(javaPackage()));
 
@@ -45,33 +47,19 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
         }
     }
 
-    static String PACKAGE_SEPERATOR = ".";
-
-    String insertionPointTypeName() {
-        String messageDescriptorTypename = descriptorProto().getName();
-        DescriptorProtos.FileDescriptorProto fileDescriptorProto = fileDescriptorProto();
-
-        if (fileDescriptorProto.hasPackage()) {
-            return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + messageDescriptorTypename;
-        }
-        return messageDescriptorTypename;
-    }
-
-
     String insertionPointFor() {
         // outer class scope is not predicated on any message - it's shared for all messages in a .proto file
         if (insertionPoint == InsertionPoint.outer_class_scope) {
             return insertionPoint.name();
         }
-        return insertionPoint.name() + INSERTION_POINT_JOIN + insertionPointTypeName();
+        return insertionPoint.name() + INSERTION_POINT_JOIN + TypeUtils.protoTypeName(this);
     }
 
-    // see modificationFileAndPath
     StringBuilder javaFullClassNameBuilder() {
         StringBuilder out = new StringBuilder(javaPackage());
 
         if (out.length() > 0) {
-            out.append(PACKAGE_SEPERATOR);
+            out.append(TypeUtils.PACKAGE_SEPERATOR);
         }
 
         out.append(javaClassName());
@@ -80,21 +68,13 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
     }
 
     String javaClassName() {
-        return insertionPoint.mangleJavaClassName(classNameForMessageDescriptor(descriptorProto()));
+        //This mangling is important to address OrBuilder and _Mixin interfaces
+        return insertionPoint.mangleJavaClassName(TypeUtils.javaClassName(this));
     }
 
     String javaPackage() {
-        DescriptorProtos.FileOptions options = fileDescriptorProto().getOptions();
-
-        if (options.hasJavaPackage()) {
-            return options.getJavaPackage();
-        } else if (fileDescriptorProto().hasPackage()) {
-            return fileDescriptorProto().getPackage();
-        } else {
-            return "";
-        }
+        return TypeUtils.javaPackage(this);
     }
-
 
     private static Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
     private static String OUTER_CLASS_SUFFIX = "OuterClass";
@@ -106,16 +86,12 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
         // If our program is slow, we should count executions
         if (fileDescriptorProto.getMessageTypeList()
                 .stream()
-                .map(Coordinates::classNameForMessageDescriptor)
+                .map(TypeUtils::javaClassName)
                 .noneMatch(guess::equals)) {
             return guess;
         } else {
             return guess + OUTER_CLASS_SUFFIX;
         }
-    }
-
-    static String classNameForMessageDescriptor(DescriptorProtos.DescriptorProto descriptorProto) {
-        return CodeGeneratorUtils.CamelCase(descriptorProto.getName());
     }
 
     // with-ers

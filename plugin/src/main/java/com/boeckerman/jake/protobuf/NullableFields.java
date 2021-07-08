@@ -2,19 +2,15 @@ package com.boeckerman.jake.protobuf;
 
 import com.boeckerman.jake.protobuf.Context.FieldContext;
 import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
-import com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.CamelCase;
-import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.isPrimitive;
+import static com.boeckerman.jake.protobuf.TypeUtils.isPrimitive;
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 
 public class NullableFields implements FieldHandler {
@@ -126,7 +122,7 @@ public class NullableFields implements FieldHandler {
     private String nullableType() {
         String type;
         if (primitive) {
-            type = CodeGeneratorUtils.BoxingType.fromType(fieldDescriptorProto.getType()).toString();
+            type = TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()).toString();
         } else {
             type = fieldDescriptorProto.getTypeName();// TODO: likely not going to work due to type name impedence between proto and java
         }
@@ -136,7 +132,7 @@ public class NullableFields implements FieldHandler {
     private String protoType() {
         String type;
         if (primitive) {
-            type = CodeGeneratorUtils.BoxingType.fromType(fieldDescriptorProto.getType()).primitiveName;
+            type = TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()).primitive();
         } else {
             type = fieldDescriptorProto.getTypeName();// TODO: likely not going to work due to type name impedence between proto and java
         }

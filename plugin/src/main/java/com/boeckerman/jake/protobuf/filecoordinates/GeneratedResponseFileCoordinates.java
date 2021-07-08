@@ -11,6 +11,10 @@ public interface GeneratedResponseFileCoordinates {
 
     DescriptorProto descriptorProto();
 
+    record simple(FileDescriptorProto fileDescriptorProto,
+                  DescriptorProto descriptorProto) implements GeneratedResponseFileCoordinates {
+    }
+
     default File.Builder fileBuilderFor(InsertionPoint insertionPoint) {
         return new Coordinates(this, insertionPoint).fileBuilder();
     }
