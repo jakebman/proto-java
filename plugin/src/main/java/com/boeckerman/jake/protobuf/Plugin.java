@@ -1,14 +1,11 @@
 package com.boeckerman.jake.protobuf;
 
-import com.google.protobuf.DescriptorProtos.SourceCodeInfo;
-import com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.compiler.PluginProtos;
 import com.google.protobuf.util.JsonFormat;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 
@@ -40,28 +37,12 @@ public class Plugin {
         }
         RequestResponse.Builder message = RequestResponse.newBuilder().setRequest(request).setResponse(response);
         if (!request.getParameter().contains(Context.DEBUG_VERBOSE)) {
-            message.setRequest(filter(request));
+            message.setRequest(CodeGeneratorUtils.filter(request));
         }
 
         // Auto-close the FileWriter
         try (FileWriter output = new FileWriter("debug-output.json")) {
             JsonFormat.printer().appendTo(message, output);
         }
-    }
-
-    private static CodeGeneratorRequest filter(CodeGeneratorRequest request) {
-        return request.toBuilder()
-                .clearProtoFile()
-                .addAllProtoFile(request.getProtoFileList()
-                        .stream()
-                        .map(protoFile -> protoFile.toBuilder()
-                                .setSourceCodeInfo(SourceCodeInfo.newBuilder()
-                                        .addLocation(Location.newBuilder()
-                                                .addLeadingDetachedComments("SourceCodeInfo elided from debug info")
-                                                .build())
-                                        .build())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
     }
 }

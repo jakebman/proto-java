@@ -21,10 +21,7 @@ public class ListFields implements FieldHandler {
 
         this.names = new NameVariants(fieldContext);
         TypeUtils.TypeReference typeReference = fieldContext.executionContext().typeNames();
-        this.typeNames = typeReference.apply(fieldDescriptorProto);
-        if(this.typeNames == null) {
-            throw new Error(typeReference + " does not have " + fieldDescriptorProto);
-        }
+        this.typeNames = typeReference.lookup(fieldDescriptorProto);
     }
 
     @Override

@@ -25,7 +25,7 @@ public class NullableFields implements FieldHandler {
         this.fieldContext = fieldContext;
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
         this.nullableOptions = fieldContext.fieldExtension().getNullable();
-        this.typeNames = fieldContext.executionContext().typeNames().apply(fieldDescriptorProto);
+        this.typeNames = fieldContext.executionContext().typeNames().lookup(fieldDescriptorProto);
         this.nameVariants = new NameVariants(fieldContext);
     }
 

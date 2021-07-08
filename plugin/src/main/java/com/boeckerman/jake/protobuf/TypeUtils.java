@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TypeUtils {
@@ -19,30 +18,35 @@ public class TypeUtils {
         return generateLookupTableFor(request.getProtoFileList());
     }
 
-    public static class TypeReference implements Function<DescriptorProtos.FieldDescriptorProto, TypeNames> {
+    public static class TypeReference {
         Map<String, TypeNames> lookupTable;
 
         public TypeReference(Map<String, TypeNames> lookupTable) {
             this.lookupTable = lookupTable;
         }
 
-        @Override
-        public TypeNames apply(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
-
-            return isPrimitive(fieldDescriptorProto.getType()) ?
-                    new ProtoAndJavaTypeNames(fieldDescriptorProto.getType()) :
+        public TypeNames lookup(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
+            Type type = fieldDescriptorProto.getType();
+            TypeNames output = BoxingType.hasType(type) ?
+                    new ProtoAndJavaTypeNames(type) :
                     lookupTable.get(fieldDescriptorProto.getTypeName());
+
+            if (output == null) {
+                throw new RuntimeException(this.describe() + " does not have " + CodeGeneratorUtils.debugPeek(fieldDescriptorProto));
+            }
+            return output;
         }
 
         public String describe() {
             return lookupTable.entrySet()
                     .stream()
-                    .map(e -> e.getKey() + " => " + e.getValue().describe())
-                    .collect(Collectors.joining("\n"));
+                    .filter(e -> !e.getKey().startsWith(".google.protobuf")) // no meta
+                    .map(e -> e.getKey() + ":" + e.getValue().describe())
+                    .collect(Collectors.joining(",", "LookupTable(", ")"));
         }
 
         public JavaTypeNames lookupMessageType(String messageName) {
-            return lookupTable.get(messageName);
+            return lookupTable.get("." + messageName);
         }
     }
 
@@ -54,7 +58,7 @@ public class TypeUtils {
                         .stream()
                         .map(descriptorProto ->
                                 new simple(fileDescriptorProto, descriptorProto)))
-                .collect(Collectors.toMap(TypeUtils::protoTypeName, ClassLike::new));
+                .collect(Collectors.toMap(x -> "." + protoTypeName(x), ClassLike::new));
         return new TypeReference(objects);
     }
 
@@ -140,6 +144,19 @@ public class TypeUtils {
             public boolean isPrimitive() {
                 return false;
             }
+
+            public String boxed() {
+                return primitiveName;
+            }
+        },
+        Bytes("com.google.protobuf.ByteString") {
+            public boolean isPrimitive() {
+                return false;
+            }
+
+            public String boxed() {
+                return primitiveName;
+            }
         };
 
 
@@ -165,6 +182,10 @@ public class TypeUtils {
         }
 
 
+        static boolean hasType(Type type) {
+            return fromType(type) != null;
+        }
+
         static BoxingType fromType(Type type) {
             return switch (type) {
                 case TYPE_DOUBLE -> Double;
@@ -177,6 +198,8 @@ public class TypeUtils {
                         -> Integer;
                 case TYPE_BOOL -> Boolean;
                 case TYPE_STRING -> String;
+                case TYPE_BYTES -> Bytes;
+                case TYPE_GROUP, TYPE_MESSAGE, TYPE_ENUM -> null;
                 default -> null;// TODO: log an error
             };
         }
@@ -201,11 +224,23 @@ public class TypeUtils {
         String proto_type_name();
 
         default String describe() {
-            return "" +
-                    "primitive='" + primitive() + "'," +
-                    "boxed='" + boxed() + "'," +
-                    "proto_='" + proto_type_name() + "'" +
-                    "";
+            String primitive = primitive();
+            String boxed = boxed();
+            String proto = proto_type_name();
+            if (StringUtils.equals(primitive, boxed)) {
+                if (StringUtils.equals(boxed, proto)) {
+                    return "Typename=" + proto;
+                } else {
+                    return "TypeName(" +
+                            "java='" + boxed + "'," +
+                            "proto_='" + proto + "')";
+                }
+            }
+            return "TypeName(" +
+                    "primitive='" + primitive + "'," +
+                    "boxed='" + boxed + "'," +
+                    "proto_='" + proto + "'" +
+                    ")";
         }
     }
 

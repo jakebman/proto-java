@@ -1,8 +1,10 @@
 package com.boeckerman.jake.protobuf;
 
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
+import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import com.google.protobuf.util.JsonFormat;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,12 +55,32 @@ public class CodeGeneratorUtils {
 
     public static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().includingDefaultValueFields().omittingInsignificantWhitespace();
 
-    public static String debugPeek(Message nullableOptionals) {
+    public static String debugPeek(Message message) {
         try {
-            return JSON_PRINTER.print(nullableOptionals);
+            return JSON_PRINTER.print(message);
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
-            return TextFormat.printer().shortDebugString(nullableOptionals);
+            return TextFormat.printer().shortDebugString(message);
         }
+    }
+
+    static CodeGeneratorRequest filter(CodeGeneratorRequest request) {
+        return request.toBuilder()
+                .clearProtoFile()
+                .addAllProtoFile(request.getProtoFileList()
+                        .stream()
+                        .map(CodeGeneratorUtils::filter)
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    private static FileDescriptorProto filter(FileDescriptorProto protoFile) {
+        return protoFile.toBuilder()
+                .setSourceCodeInfo(DescriptorProtos.SourceCodeInfo.newBuilder()
+                        .addLocation(DescriptorProtos.SourceCodeInfo.Location.newBuilder()
+                                .addLeadingDetachedComments("SourceCodeInfo elided from debug info")
+                                .build())
+                        .build())
+                .build();
     }
 }
