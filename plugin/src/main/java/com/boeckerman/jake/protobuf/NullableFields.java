@@ -71,7 +71,7 @@ public class NullableFields implements Supplier<Stream<File>> {
     }
 
     private Stream<File> response() {
-        return Stream.of(has(), getter(), setter(), clearer(), nullableGetter(), nullableSetter());
+        return Stream.of(has(), getter(), nullableGetter(), nullableSetter());
     }
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
@@ -83,6 +83,7 @@ public class NullableFields implements Supplier<Stream<File>> {
     private File getter() {
         return mixinContext(methodDeclarationHeader(protoType(), "get", protoName).append(";").toString());
     }
+
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     private File setter() {
         return builderContext(methodDeclarationHeader("void", "set", protoName, protoType() + " value").append(";").toString());
