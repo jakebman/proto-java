@@ -19,18 +19,18 @@ public class TypeUtils {
         return generateLookupTableFor(request.getProtoFileList());
     }
 
-    public static class TypeReference implements Function<DescriptorProtos.FieldDescriptorProto, JavaTypeNames> {
-        Map<String, JavaTypeNames> lookupTable;
+    public static class TypeReference implements Function<DescriptorProtos.FieldDescriptorProto, TypeNames> {
+        Map<String, TypeNames> lookupTable;
 
-        public TypeReference(Map<String, JavaTypeNames> lookupTable) {
+        public TypeReference(Map<String, TypeNames> lookupTable) {
             this.lookupTable = lookupTable;
         }
 
         @Override
-        public JavaTypeNames apply(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
+        public TypeNames apply(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto) {
 
             return isPrimitive(fieldDescriptorProto.getType()) ?
-                    TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()) :
+                    new ProtoAndJavaTypeNames(fieldDescriptorProto.getType()) :
                     lookupTable.get(fieldDescriptorProto.getTypeName());
         }
 
@@ -47,23 +47,15 @@ public class TypeUtils {
     }
 
     public static TypeReference generateLookupTableFor(Collection<DescriptorProtos.FileDescriptorProto> protoFileList) {
-        Map<String, JavaTypeNames> objects = protoFileList
+        Map<String, TypeNames> objects = protoFileList
                 .stream()
                 .flatMap(fileDescriptorProto -> fileDescriptorProto
                         .getMessageTypeList()
                         .stream()
                         .map(descriptorProto ->
                                 new simple(fileDescriptorProto, descriptorProto)))
-                .collect(Collectors.toMap(TypeUtils::protoTypeName, TypeUtils::messageTypeNames));
+                .collect(Collectors.toMap(TypeUtils::protoTypeName, ClassLike::new));
         return new TypeReference(objects);
-    }
-
-    private static String textName(Type type) {
-        return StringUtils.removeStart(type.name(), "TYPE_").toLowerCase();
-    }
-
-    static JavaTypeNames messageTypeNames(GeneratedResponseFileCoordinates protoIdentifier) {
-        return new ClassLike(javaFullClassName(protoIdentifier));
     }
 
     public static String PACKAGE_SEPERATOR = ".";
@@ -110,6 +102,27 @@ public class TypeUtils {
     public static String javaClassName(DescriptorProto descriptorProto) {
         return CodeGeneratorUtils.CamelCase(descriptorProto.getName());
     }
+
+    static record ProtoAndJavaTypeNames(BoxingType boxingType, String proto_type_name) implements TypeNames {
+        public ProtoAndJavaTypeNames(Type type) {
+            this(BoxingType.fromType(type), textName(type));
+        }
+
+        public static String textName(Type type) {
+            return StringUtils.removeStart(type.name(), "TYPE_").toLowerCase();
+        }
+
+        @Override
+        public String primitive() {
+            return boxingType.primitive();
+        }
+
+        @Override
+        public String boxed() {
+            return boxingType.boxed();
+        }
+    }
+
 
     public enum BoxingType implements JavaTypeNames {
         Integer("int"),
@@ -160,7 +173,19 @@ public class TypeUtils {
         default String describe() {
             return "" +
                     "primitive='" + primitive() + "'," +
-                    "boxed='" + boxed() + '\'' +
+                    "boxed='" + boxed() + "'" +
+                    "";
+        }
+    }
+
+    interface TypeNames extends JavaTypeNames {
+        String proto_type_name();
+
+        default String describe() {
+            return "" +
+                    "primitive='" + primitive() + "'," +
+                    "boxed='" + boxed() + "'," +
+                    "proto_='" + proto_type_name() + "'" +
                     "";
         }
     }
@@ -180,22 +205,27 @@ public class TypeUtils {
         };
     }
 
-    static record ClassLike(String classname) implements JavaTypeNames {
+    static record ClassLike(String javaName, String proto_type_name) implements TypeNames {
+        public ClassLike(GeneratedResponseFileCoordinates protoIdentifier) {
+            this(javaFullClassName(protoIdentifier), protoTypeName(protoIdentifier));
+        }
 
         @Override
         public String primitive() {
-            return classname;
+            return javaName;
         }
 
         @Override
         public String boxed() {
-            return classname;
+            return javaName;
         }
 
         @Override
         public String describe() {
-            return "alwaysNamed=" + classname;
+            return "" +
+                    "java='" + javaName() + "'," +
+                    "proto_='" + proto_type_name() + "'" +
+                    "";
         }
-
     }
 }

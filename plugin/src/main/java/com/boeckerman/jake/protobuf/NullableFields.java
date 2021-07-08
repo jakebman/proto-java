@@ -19,7 +19,7 @@ public class NullableFields implements FieldHandler {
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
     private final NullableOptions nullableOptions;
     private final boolean primitive;
-    private final TypeUtils.JavaTypeNames javaTypeNames;
+    private final TypeUtils.TypeNames typeNames;
 
     private final String original_name_from_proto_file; // looks like original_name_from_proto_file_{some_suffix}
     private final String protoGeneratedName; // looks like OriginalNameFromProtoFile{SomeSuffix}
@@ -30,7 +30,7 @@ public class NullableFields implements FieldHandler {
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
         this.nullableOptions = fieldContext.fieldExtension().getNullable();
         this.primitive = isPrimitive(fieldDescriptorProto.getType());
-        this.javaTypeNames = fieldContext.executionContext().typeNames().apply(fieldDescriptorProto);
+        this.typeNames = fieldContext.executionContext().typeNames().apply(fieldDescriptorProto);
         this.original_name_from_proto_file = fieldDescriptorProto.getName();
         this.protoGeneratedName = CamelCase(original_name_from_proto_file);
 
@@ -122,11 +122,11 @@ public class NullableFields implements FieldHandler {
     }
 
     private String nullableType() {
-        return javaTypeNames.boxed();
+        return typeNames.boxed();
     }
 
     private String protoType() {
-        return javaTypeNames.primitive();
+        return typeNames.primitive();
     }
 
 
