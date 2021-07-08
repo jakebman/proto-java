@@ -2,6 +2,7 @@ package com.boeckerman.jake.protobuf;
 
 import java.util.Arrays;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class StreamUtil {
@@ -20,6 +21,10 @@ public class StreamUtil {
     @SafeVarargs
     static <T> Stream<T> concat(Stream<T>... streams) {
         return Arrays.stream(streams).flatMap(Function.identity());
+    }
+
+    static <T> Stream<T> concat(Supplier<Stream<T>>... streams) {
+        return Arrays.stream(streams).flatMap(Supplier::get);
     }
 
     @SafeVarargs

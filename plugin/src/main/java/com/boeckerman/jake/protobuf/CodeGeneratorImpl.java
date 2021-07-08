@@ -6,16 +6,14 @@ import com.boeckerman.jake.protobuf.Context.MessageContext;
 import com.boeckerman.jake.protobuf.Context.RootContext;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.ListOptions;
-import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.NullableOptions;
 import com.boeckerman.jake.protobuf.filecoordinates.CustomMixinFile;
 import com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 
 import java.util.List;
- import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
@@ -74,35 +72,11 @@ public class CodeGeneratorImpl implements CodeGenerator {
     private Stream<File> modifications(FieldContext fieldContext) {
         if (fieldContext.fieldExtension().getEnabled()) {
             return StreamUtil.concat(
-                    applyNullableOptions(fieldContext),
-                    applyListOptions(fieldContext),
-                    applyAliasOptions(fieldContext),
-                    applyBooleanOptions(fieldContext)
+                    new NullableFields(fieldContext),
+                    () -> applyListOptions(fieldContext),
+                    () -> applyAliasOptions(fieldContext),
+                    () -> applyBooleanOptions(fieldContext)
             );
-        } else {
-            return Stream.empty();
-        }
-    }
-
-    private Stream<File> applyNullableOptions(FieldContext fieldContext) {
-        JavaFieldExtension javaFieldExtension = fieldContext.fieldExtension();
-        FieldDescriptorProto fieldDescriptorProto = fieldContext.fieldDescriptorProto();
-        if (fieldDescriptorProto.getLabel() != LABEL_OPTIONAL) {
-            return Stream.empty();
-        }
-        NullableOptions nullableOptionals = javaFieldExtension.getNullable();
-        if (CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType())
-                && fieldDescriptorProto.getName().endsWith(nullableOptionals.getPrimitiveSuffix())) {
-
-            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.custom_mixin_interface_scope)
-                    .setContent("//" + this.getClass().getName() + " - Recognize primitive we need to work on " + fieldDescriptorProto.getName())
-                    .build());
-        } else if (!CodeGeneratorUtils.isPrimitive(fieldDescriptorProto.getType())
-                && fieldDescriptorProto.getName().endsWith(nullableOptionals.getObjectSuffix())) {
-
-            return Stream.of(fieldContext.fileBuilderFor(InsertionPoint.custom_mixin_interface_scope)
-                    .setContent("//" + this.getClass().getName() + " - Recognize Object we need to work on " + fieldDescriptorProto.getName())
-                    .build());
         } else {
             return Stream.empty();
         }
