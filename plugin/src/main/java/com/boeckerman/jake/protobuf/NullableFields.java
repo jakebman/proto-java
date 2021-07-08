@@ -30,7 +30,10 @@ public class NullableFields implements FieldHandler {
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
         this.nullableOptions = fieldContext.fieldExtension().getNullable();
         this.primitive = isPrimitive(fieldDescriptorProto.getType());
-        this.javaTypeNames = fieldContext.executionContext().typeNames().get(fieldDescriptorProto.getTypeName());
+
+        this.javaTypeNames = primitive ?
+                TypeUtils.BoxingType.fromType(fieldDescriptorProto.getType()) :
+                fieldContext.executionContext().typeNames().get(fieldDescriptorProto.getTypeName());
         this.original_name_from_proto_file = fieldDescriptorProto.getName();
         this.protoGeneratedName = CamelCase(original_name_from_proto_file);
 
