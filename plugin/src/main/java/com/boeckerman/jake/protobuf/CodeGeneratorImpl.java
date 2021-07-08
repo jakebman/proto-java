@@ -73,24 +73,13 @@ public class CodeGeneratorImpl implements CodeGenerator {
         if (fieldContext.fieldExtension().getEnabled()) {
             return StreamUtil.concat(
                     new NullableFields(fieldContext),
-                    () -> applyListOptions(fieldContext),
+                    new ListFields(fieldContext),
                     () -> applyAliasOptions(fieldContext),
                     () -> applyBooleanOptions(fieldContext)
             );
         } else {
             return Stream.empty();
         }
-    }
-
-    private Stream<File> applyListOptions(FieldContext fieldContext) {
-        JavaFieldExtension javaFieldExtension = fieldContext.fieldExtension();
-        FieldDescriptorProto fieldDescriptorProto = fieldContext.fieldDescriptorProto();
-        if (fieldDescriptorProto.getLabel() != LABEL_REPEATED) {
-            return Stream.empty();
-        }
-        ListOptions listOptions = javaFieldExtension.getList();
-        //Stub.
-        return Stream.empty();
     }
 
     private Stream<File> applyAliasOptions(FieldContext fieldContext) {
