@@ -121,6 +121,11 @@ public class TypeUtils {
         public String boxed() {
             return boxingType.boxed();
         }
+
+        @Override
+        public boolean isPrimitive() {
+            return boxingType.isPrimitive(); // very likely always true, but this is delegation
+        }
     }
 
 
@@ -148,6 +153,11 @@ public class TypeUtils {
             return name();
         }
 
+        @Override
+        public boolean isPrimitive() {
+            return true;
+        }
+
 
         static BoxingType fromType(Type type) {
             return switch (type) {
@@ -169,6 +179,8 @@ public class TypeUtils {
         String primitive();
 
         String boxed();
+
+        boolean isPrimitive();
 
         default String describe() {
             return "" +
@@ -218,6 +230,11 @@ public class TypeUtils {
         @Override
         public String boxed() {
             return javaName;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
         }
 
         @Override
