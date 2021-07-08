@@ -9,6 +9,8 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 
+import java.util.Map;
+
 public class Context {
 
     // CLI Parameters:
@@ -16,9 +18,19 @@ public class Context {
     public static final String DEBUG = "DEBUG"; // debug output
     public static final String DEBUG_VERBOSE = "DEBUG_VERBOSE"; // verbose debug output
 
-    static record RootContext(CodeGeneratorRequest request) {
+    static record ExecutionContext(Map<String, TypeUtils.JavaTypeNames> typeNames) {
+        public ExecutionContext(CodeGeneratorRequest request) {
+            this(TypeUtils.generateLookupTableFor(request));
+        }
+    }
+
+    static record RootContext(CodeGeneratorRequest request, ExecutionContext executionContext) {
+        public RootContext(CodeGeneratorRequest request) {
+            this(request, new ExecutionContext(request));
+        }
+
         FileContext withFile(FileDescriptorProto fileDescriptorProto) {
-            return new FileContext(request, fileDescriptorProto, javaExtensionOptionsFor(request, fileDescriptorProto));
+            return new FileContext(this, fileDescriptorProto);
         }
     }
 
@@ -31,12 +43,14 @@ public class Context {
 
     static record FileContext(CodeGeneratorRequest request,
                               FileDescriptorProto fileDescriptorProto,
-                              JavaGlobalOptions javaGlobalOptions) {
+                              JavaGlobalOptions javaGlobalOptions,
+                              ExecutionContext executionContext) {
+        public FileContext(RootContext rootContext, FileDescriptorProto fileDescriptorProto) {
+            this(rootContext.request, fileDescriptorProto, javaExtensionOptionsFor(rootContext.request, fileDescriptorProto), rootContext.executionContext);
+        }
 
         MessageContext withMessage(DescriptorProto descriptorProto) {
-            return new MessageContext(request, fileDescriptorProto,
-                    descriptorProto,
-                    enhancedExtensionOptions(javaGlobalOptions, descriptorProto));
+            return new MessageContext(this, descriptorProto);
         }
 
     }
@@ -60,13 +74,18 @@ public class Context {
     static record MessageContext(CodeGeneratorRequest request,
                                  FileDescriptorProto fileDescriptorProto,
                                  DescriptorProto descriptorProto,
-                                 JavaMessageExtensions javaMessageExtensions)
+                                 JavaMessageExtensions javaMessageExtensions,
+                                 ExecutionContext executionContext)
             implements GeneratedResponseFileCoordinates {
+        public MessageContext(FileContext fileContext, DescriptorProto descriptorProto) {
+            this(fileContext.request, fileContext.fileDescriptorProto,
+                    descriptorProto,
+                    enhancedExtensionOptions(fileContext.javaGlobalOptions, descriptorProto),
+                    fileContext.executionContext);
+        }
 
         FieldContext withFieldDescriptor(FieldDescriptorProto fieldDescriptorProto) {
-            return new FieldContext(request, fileDescriptorProto, descriptorProto,
-                    fieldDescriptorProto,
-                    enhancedFieldExtensions(javaMessageExtensions, fieldDescriptorProto));
+            return new FieldContext(this, fieldDescriptorProto);
         }
     }
 
@@ -87,8 +106,14 @@ public class Context {
                                FileDescriptorProto fileDescriptorProto,
                                DescriptorProto descriptorProto,
                                FieldDescriptorProto fieldDescriptorProto,
-                               JavaFieldExtension fieldExtension)
+                               JavaFieldExtension fieldExtension,
+                               ExecutionContext executionContext)
             implements GeneratedResponseFileCoordinates {
-
+        public FieldContext(MessageContext messageContext, FieldDescriptorProto fieldDescriptorProto) {
+            this(messageContext.request, messageContext.fileDescriptorProto, messageContext.descriptorProto,
+                    fieldDescriptorProto,
+                    enhancedFieldExtensions(messageContext.javaMessageExtensions, fieldDescriptorProto),
+                    messageContext.executionContext);
+        }
     }
 }
