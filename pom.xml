@@ -28,6 +28,32 @@
         <module>google-plugin-api-to-appease-intellij</module>
     </modules>
     <build>
+        <plugins>
+            <plugin>
+                <!--
+                For a proto-only project we could use this smaller snippet - no need for build-helper
+                     <build>
+                         <sourceDirectory>src/main/proto</sourceDirectory>
+                     </build>
+                 -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/main/proto</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
             <plugins>
                 <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
@@ -78,6 +104,11 @@
                     <groupId>kr.motd.maven</groupId>
                     <artifactId>os-maven-plugin</artifactId>
                     <version>1.6.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.2.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
