@@ -156,7 +156,8 @@ public class Context {
             implements GeneratedResponseFileCoordinates {
         public FieldContext(MessageContext parent, FieldDescriptorProto fieldDescriptorProto) {
             this(parent.request, parent.executionContext, parent.fileDescriptorProto, parent.descriptorProto,
-                    parent, fieldDescriptorProto, enhancedFieldExtensions(parent.javaMessageExtensions, fieldDescriptorProto));
+                    parent.parent, // if we only use `parent` here, `this.descriptorProto` == `parent.descriptorProto`, and the final class name is double-counted
+                    fieldDescriptorProto, enhancedFieldExtensions(parent.javaMessageExtensions, fieldDescriptorProto));
         }
     }
 }
