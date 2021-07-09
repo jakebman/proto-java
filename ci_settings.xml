@@ -1,0 +1,20 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <!-- see http://maven.apache.org/settings.html for documentation -->
+    <!-- Riffed from https://gitlab.com/gitlab-examples/maven/simple-maven-dep/-/blob/master/ci_settings.xml -->
+    <!-- This file's name has no significance except to the .gitlab-ci.yml scripts -->
+    <servers>
+        <server>
+            <id>se-artifactory</id>
+            <username>nns.user</username>
+            <password>${env.SE_ARTIFACTORY_PASSWORD}</password>
+        </server>
+        <server>
+            <id>se-artifactory-snapshots</id>
+            <username>nns.user</username>
+            <password>${env.SE_ARTIFACTORY_PASSWORD}</password>
+        </server>
+    </servers>
+</settings>
