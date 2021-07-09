@@ -25,6 +25,7 @@
         <module>plugin</module>
         <module>client-example</module>
         <module>plugin-api</module>
+        <module>google-plugin-api-to-appease-intellij</module>
     </modules>
     <build>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
