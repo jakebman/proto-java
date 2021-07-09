@@ -19,6 +19,10 @@ public interface GetterSetterHelper extends FieldHandler {
         return context().fieldDescriptorProto().getLabel() == DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
     }
 
+    default boolean isMap() {
+        return typeNames().descriptorProtoDefault().getOptions().getMapEntry();
+    }
+
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     default PluginProtos.CodeGeneratorResponse.File has() {
         return mixinContext(existingMethodDeclaration("boolean", "has"));
@@ -39,7 +43,7 @@ public interface GetterSetterHelper extends FieldHandler {
 
     default String protoType() {
         if (isList()) {
-            return ListFields.listOf(nullableType());
+            return ListFields.listOf(typeNames().boxed());
         } else {
             return typeNames().primitive();
         }

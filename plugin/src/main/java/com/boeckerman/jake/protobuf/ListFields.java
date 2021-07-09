@@ -2,16 +2,15 @@ package com.boeckerman.jake.protobuf;
 
 import com.boeckerman.jake.protobuf.Context.FieldContext;
 import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
 import java.util.stream.Stream;
 
-public class ListFields implements FieldHandler {
+public class ListFields implements FieldHandler, GetterSetterHelper {
     private final FieldContext fieldContext;
     private final Extensions.JavaFieldExtension.ListOptions listOptions;
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
-    private final NameVariants names;
+    private final NameVariants.FieldNames names;
     private final TypeUtils.TypeNames typeNames;
 
     public ListFields(FieldContext fieldContext) {
@@ -25,7 +24,7 @@ public class ListFields implements FieldHandler {
 
     @Override
     public Stream<File> get() {
-        if (fieldDescriptorProto.getLabel() != Label.LABEL_REPEATED) {
+        if (!isList()) {
             return Stream.empty();
         }
         // from descriptor.proto:
@@ -39,7 +38,7 @@ public class ListFields implements FieldHandler {
         //     }
         //     repeated MapFieldEntry map_field = 1;
         //
-        if (typeNames.descriptorProtoDefault().getOptions().getMapEntry()) {
+        if (isMap()) {
             return Stream.empty();
         }
 
@@ -58,11 +57,6 @@ public class ListFields implements FieldHandler {
             }
         }
         return builder.build();
-    }
-
-    // needed for the mixin to compile. Both the Builder and the Message already have this defined
-    private File getter() {
-        return mixinContext(methodDeclarationHeader(listOf(typeNames.boxed()), "get", names.name() + "List").append(";").toString());
     }
 
     public static String listOf(String boxed) {
@@ -106,5 +100,15 @@ public class ListFields implements FieldHandler {
     @Override
     public FieldContext context() {
         return fieldContext;
+    }
+
+    @Override
+    public NameVariants.FieldNames nameVariants() {
+        return names;
+    }
+
+    @Override
+    public TypeUtils.TypeNames typeNames() {
+        return typeNames;
     }
 }
