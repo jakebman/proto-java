@@ -102,6 +102,7 @@ public class TypeUtilsTest {
                 .setPackage(PROTO_PACKAGE)
                 .setOptions(DescriptorProtos.FileOptions.newBuilder()
                         .setJavaPackage(JAVA_PACKAGE)
+                        .setJavaMultipleFiles(true)
                         .build())
                 .addMessageType(message)
                 .build();

@@ -6,7 +6,6 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 
 import javax.annotation.Nullable;
-import java.util.regex.Pattern;
 
 import static com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint.INSERTION_POINT_JOIN;
 
@@ -44,7 +43,7 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
         } else if (options.hasJavaOuterClassname()) {
             return options.getJavaOuterClassname();
         } else {
-            return outerClassFileBaseNameFor(fileDescriptorProto());
+            return TypeUtils.javaOuterClassBaseName(fileDescriptorProto());
         }
     }
 
@@ -65,24 +64,6 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
     // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     String javaPackage() {
         return TypeUtils.javaPackage(this);
-    }
-
-    private static Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
-    private static String OUTER_CLASS_SUFFIX = "OuterClass";
-
-    static String outerClassFileBaseNameFor(DescriptorProtos.FileDescriptorProto fileDescriptorProto) {
-        String guess = CodeGeneratorUtils.CamelCase(CodeGeneratorUtils.deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName()));
-
-        // minor concern: This might be inefficient.
-        // If our program is slow, we should count executions
-        if (fileDescriptorProto.getMessageTypeList()
-                .stream()
-                .map(TypeUtils::javaClassName)
-                .noneMatch(guess::equals)) {
-            return guess;
-        } else {
-            return guess + OUTER_CLASS_SUFFIX;
-        }
     }
 
     // with-ers

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -137,6 +138,11 @@ public class TypeUtils {
     public static StringBuilder javaFullClassNamePrefixBuilder(GeneratedResponseFileCoordinates fileCoordinates) {
         StringBuilder out = new StringBuilder(javaPackage(fileCoordinates));
         appendPackageSeperatorIfNecessary(out);
+        FileDescriptorProto fileDescriptorProto = fileCoordinates.fileDescriptorProto();
+        if (!fileDescriptorProto.getOptions().getJavaMultipleFiles()) {
+            out.append(javaOuterClassBaseName(fileDescriptorProto));
+            appendPackageSeperatorIfNecessary(out);
+        }
         appendNestedClassParents(out, fileCoordinates.parent());
         return out;
     }
@@ -178,6 +184,24 @@ public class TypeUtils {
     // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     public static String javaClassName(DescriptorProto descriptorProto) {
         return descriptorProto.getName();
+    }
+
+    private static Pattern TRAILING_PROTO_SUFFIX = Pattern.compile("\\.proto$");
+    private static String OUTER_CLASS_SUFFIX = "OuterClass";
+
+    public static String javaOuterClassBaseName(FileDescriptorProto fileDescriptorProto) {
+        String guess = CodeGeneratorUtils.CamelCase(CodeGeneratorUtils.deleteMatchesOfPattern(TRAILING_PROTO_SUFFIX, fileDescriptorProto.getName()));
+
+        // minor concern: This might be inefficient.
+        // If our program is slow, we should count executions
+        if (fileDescriptorProto.getMessageTypeList()
+                .stream()
+                .map(TypeUtils::javaClassName)
+                .noneMatch(guess::equals)) {
+            return guess;
+        } else {
+            return guess + OUTER_CLASS_SUFFIX;
+        }
     }
 
     static record ProtoAndJavaTypeNames(BoxingType boxingType, String proto_type_name) implements TypeNames {
