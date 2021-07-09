@@ -52,6 +52,7 @@ message JavaFieldExtension {
     repeated string aliases = 2;
     repeated string getters = 3;
     repeated string setters = 4;
+    repeated string clearers = 5;
   }
   optional AliasOptions alias = 4;
 

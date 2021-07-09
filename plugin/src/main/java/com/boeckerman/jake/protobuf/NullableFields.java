@@ -14,7 +14,7 @@ import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.CamelCase;
 import static com.boeckerman.jake.protobuf.TypeUtils.isPrimitive;
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL;
 
-public class NullableFields implements FieldHandler {
+public class NullableFields implements FieldHandler, GetterSetterHelper {
     private final FieldContext fieldContext;
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
     private final NullableOptions nullableOptions;
@@ -77,16 +77,6 @@ public class NullableFields implements FieldHandler {
         return Stream.of(has(), getter(), nullableGetter(), nullableSetter());
     }
 
-    // needed for the mixin to compile. Both the Builder and the Message already have this defined
-    private File has() {
-        return mixinContext(methodDeclarationHeader("boolean", "has", nameVariants.protoGeneratedName()).append(";").toString());
-    }
-
-    // needed for the mixin to compile. Both the Builder and the Message already have this defined
-    private File getter() {
-        return mixinContext(methodDeclarationHeader(protoType(), "get", nameVariants.protoGeneratedName()).append(";").toString());
-    }
-
     // NOT needed for the mixin to compile (the setter gets directly injected into the Builder, which already has this defined.
     private File setter() {
         return builderContext(methodDeclarationHeader("void", "set", nameVariants.protoGeneratedName(), protoType() + " value").append(";").toString());
@@ -123,17 +113,18 @@ public class NullableFields implements FieldHandler {
                 methodInvoke("get", nameVariants.protoGeneratedName())));
     }
 
-    private String nullableType() {
-        return typeNames.boxed();
-    }
-
-    private String protoType() {
-        return typeNames.primitive();
-    }
-
-
     @Override
     public GeneratedResponseFileCoordinates context() {
         return fieldContext;
+    }
+
+    @Override
+    public NameVariants.FieldNames nameVariants() {
+        return nameVariants;
+    }
+
+    @Override
+    public TypeUtils.TypeNames typeNames() {
+        return typeNames;
     }
 }

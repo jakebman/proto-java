@@ -1,6 +1,6 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.boeckerman.jake.protobuf.CodeGeneratorUtils.CamelCase;
 
@@ -19,6 +19,10 @@ public interface NameVariants {
             this(fieldContext.fieldDescriptorProto().getName(),
                     CamelCase(fieldContext.fieldDescriptorProto().getName()), // todo: pontentially wrong
                     NullableFields.nullableName(fieldContext));
+        }
+
+        public boolean hasNullable() {
+            return !StringUtils.equals(protoGeneratedName, nullableName);
         }
 
         // the preferred name to use in this plugin -
