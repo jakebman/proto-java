@@ -70,8 +70,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
             return StreamUtil.concat(
                     new NullableFields(fieldContext),
                     new ListFields(fieldContext),
-                    new AliasFields(fieldContext),
-                    new BooleanFields(fieldContext)
+                    new AliasFields(fieldContext)
             );
         } else {
             return Stream.empty();
