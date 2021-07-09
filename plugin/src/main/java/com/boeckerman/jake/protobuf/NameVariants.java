@@ -11,13 +11,16 @@ public interface NameVariants {
     String proto_name();
 
     record FieldNames(
-            String proto_name, // looks like original_name_from_proto_file_{some_suffix}
-            String protoGeneratedName, // looks like OriginalNameFromProtoFile{SomeSuffix}; compatible with getX prefixing
-            String nullableName // looks like OriginalNameFromProtoFile; will be identical to protoGeneratedName if NullableFields doesn't apply
-    ) implements NameVariants {
+            // looks like original_name_from_proto_file_{some_suffix}
+            String proto_name,
+            // looks like OriginalNameFromProtoFile{SomeSuffix}; compatible with getX prefixing
+            String protoGeneratedName,
+            // looks like OriginalNameFromProtoFile; will be identical to protoGeneratedName if NullableFields doesn't apply
+            String nullableName)
+            implements NameVariants {
         public FieldNames(Context.FieldContext fieldContext) {
             this(fieldContext.fieldDescriptorProto().getName(),
-                    CamelCase(fieldContext.fieldDescriptorProto().getName()), // todo: pontentially wrong
+                    CamelCase(fieldContext.fieldDescriptorProto().getName()), // todo: potentially wrong
                     NullableFields.nullableName(fieldContext));
         }
 

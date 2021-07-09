@@ -114,7 +114,7 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
     }
 
     @Override
-    public GeneratedResponseFileCoordinates context() {
+    public FieldContext context() {
         return fieldContext;
     }
 

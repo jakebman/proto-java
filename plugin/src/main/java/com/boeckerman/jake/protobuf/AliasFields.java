@@ -4,7 +4,6 @@ import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.AliasOptions;
 import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.BooleanOptions;
 import com.boeckerman.jake.protobuf.NameVariants.FieldNames;
 import com.boeckerman.jake.protobuf.TypeUtils.TypeNames;
-import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,8 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AliasFields implements FieldHandler, GetterSetterHelper {
-
-
     private final Context.FieldContext fieldContext;
     private final BooleanOptions booleanOptions;
     private final AliasOptions options;
@@ -32,7 +29,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
     }
 
     @Override
-    public GeneratedResponseFileCoordinates context() {
+    public Context.FieldContext context() {
         return fieldContext;
     }
 
@@ -53,7 +50,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
                 options.getClearersList().stream(),
                 aliases.stream().map(x -> "clear" + x));
 
-        return StreamUtil.<File>concat(
+        return StreamUtil.concat(
                 generateGetters(getters),
                 generateSetters(setters),
                 generateClearers(clearers)
@@ -61,21 +58,31 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
     }
 
     private Stream<String> aliasesWithIsPrefix(Collection<String> aliases) {
-        if (booleanOptions.getUseIsPrefix()
-                && typeNames instanceof TypeUtils.ProtoAndJavaTypeNames boxType
-                && boxType.boxingType() == TypeUtils.BoxingType.Boolean) {
+        if (isBoolean() && !isList()) {
+            // Only boolean fields need this. Lists do not need ths
             return StreamUtil.concat(
                     "is" + nameVariants.name(),
                     aliases.stream().map(x -> "is" + x));
+        } else {
+            return Stream.empty();
         }
-        return Stream.empty();
+    }
+
+    private boolean isBoolean() {
+        return booleanOptions.getUseIsPrefix()
+                && typeNames instanceof TypeUtils.ProtoAndJavaTypeNames boxType
+                && boxType.boxingType() == TypeUtils.BoxingType.Boolean;
     }
 
     private Stream<File> generateGetters(Stream<String> getters) {
         Stream<File> fileStream = getters.map(this::aliasGetter);
         if (nameVariants.hasNullable()) {
-            // a getter declaration already appears in the Mixin
+            // a getter declaration already appears in the Mixin, from nullable
             // todo: need to check this works always.
+            return fileStream;
+        }
+        if (isList() && fieldContext.fieldExtension().getList().getFriendlyGetter()) {
+            // a getter declaration already appears in the mixin, from ListFields
             return fileStream;
         }
         List<File> generated = fileStream.collect(Collectors.toList());
@@ -122,15 +129,13 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
 
     private File aliasClearer(String method) {
         return builderContext("""
-                Builder %s(%s value) // alias setter
+                Builder %s() // alias clear-er
                 {
                     return %s;
                 }
                 """.formatted(method,
-                typeNames.boxed(),
-                methodInvoke("clear", nameVariants().protoGeneratedName(), "value")));
+                methodInvoke("clear", nameVariants().protoGeneratedName())));
     }
-
 
     @Override
     public FieldNames nameVariants() {
