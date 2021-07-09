@@ -69,6 +69,8 @@ message JavaMessageExtensions {
   optional bool enabled = 1 [default = true];
 
   repeated string implements = 2;
+  repeated string builder_implements = 4;
+  repeated string message_or_builder_implements = 5;
   optional JavaFieldExtension overrides = 3;
 
   reserved 15; // reserved for future use.

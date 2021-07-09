@@ -61,12 +61,25 @@ public class CodeGeneratorImpl implements CodeGenerator {
     }
 
     private Stream<File> addImplementedInterfaces(MessageContext messageContext) {
-        return messageContext.javaMessageExtensions()
-                .getImplementsList()
-                .stream()
-                .map(intface -> messageContext.fileBuilderFor(InsertionPoint.interface_extends)
-                        .setContent(intface + ", // added by protoc extension")
-                        .build());
+        return StreamUtil.<File>concat(
+                messageContext.javaMessageExtensions()
+                        .getImplementsList()
+                        .stream()
+                        .map(intface -> messageContext.fileBuilderFor(InsertionPoint.message_implements)
+                                .setContent(intface + ", // added by protoc extension")
+                                .build()),
+                messageContext.javaMessageExtensions()
+                        .getBuilderImplementsList()
+                        .stream()
+                        .map(intface -> messageContext.fileBuilderFor(InsertionPoint.builder_implements)
+                                .setContent(intface + ", // added by protoc extension")
+                                .build()),
+                messageContext.javaMessageExtensions()
+                        .getMessageOrBuilderImplementsList()
+                        .stream()
+                        .map(intface -> messageContext.fileBuilderFor(InsertionPoint.interface_extends)
+                                .setContent(intface + ", // added by protoc extension")
+                                .build()));
     }
 
     private File addMarkerInterfaceAndComment(MessageContext messageContext) {

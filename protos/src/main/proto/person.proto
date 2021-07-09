@@ -1,7 +1,6 @@
-
-
 syntax = "proto3";
 option java_multiple_files = true;
+option java_outer_classname = "somePersonOuterClassThing";
 option java_package = "com.boeckerman.jake.protobuf";
 package boeckerman.jake.protobuf; // proto packages don't care for reverse url phrasing
 
@@ -22,8 +21,14 @@ package boeckerman.jake.protobuf; // proto packages don't care for reverse url p
 import "boeckerman/jake/protobuf/extensions.proto"; //Woo! it works!
 
 message Person {
-  option (boeckerman.jake.protobuf.java_helper_message).enabled = true;
-  message Nested{ int32 field=1;}
+  // see https://developers.google.com/protocol-buffers/docs/proto#customoptions
+  //  option (boeckerman.jake.protobuf.java_helper_message).enabled = true;
+  //  option (boeckerman.jake.protobuf.java_helper_message).implements = "com.boeckerman.jake.UsabilityImprovedMessage";
+  option (boeckerman.jake.protobuf.java_helper_message) = {
+    enabled:true,
+    implements:["com.boeckerman.jake.UsabilityImprovedMessage", "java.io.Serializable"]
+  };
+  message Nested{int32 field = 1;}
   string name = 1;
   //  NON-COMPATIBLE CHANGE, conflicts on 1 with name, and is a different type
   //  required int32 name = 1;
@@ -34,13 +39,17 @@ message Person {
   optional string email = 3;
   optional Nested nested = 4;
   map<int32, string> things = 6;
+  bytes arbitrary_bytes = 233;
 
 }
 
 
 import "google/protobuf/descriptor.proto";
 
-// the IntelliJ proto editor plugin doesn't like this, but the maven plugin brings it in, so this does compile.
+// the IntelliJ protobuf editor plugin doesn't like this (because it's not in protbuf-editor.jar/include)
+// but the maven plugin *does* see it, so it compiles fine without IntelliJ knowing.
+// We have the whole google-plugin-api-to-appease-intellij module to... appease intellij and remove these squiggles
+// :D
 import "google/protobuf/compiler/plugin.proto";
 message IntrospectionFun {
   optional google.protobuf.FileDescriptorSet e = 33;
@@ -54,8 +63,8 @@ message IntrospectionFun {
 
 message Person2 {
   optional Person foo = 32;
-  message Nested{ int32 field=1;}
-   string name = 1;
+  message Nested{int32 field = 1;}
+  string name = 1;
   int32 id = 2;
   //  required int32 newid = 2;
   repeated string description = 100000000;
