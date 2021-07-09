@@ -1,6 +1,6 @@
 package com.boeckerman.jake.protobuf;
 
-import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
+import com.boeckerman.jake.protobuf.Context.FieldContext;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
@@ -8,20 +8,19 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 import java.util.stream.Stream;
 
 public class ListFields implements FieldHandler {
-    private final Context.FieldContext fieldContext;
+    private final FieldContext fieldContext;
     private final Extensions.JavaFieldExtension.ListOptions listOptions;
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
     private final NameVariants names;
     private final TypeUtils.TypeNames typeNames;
 
-    public ListFields(Context.FieldContext fieldContext) {
+    public ListFields(FieldContext fieldContext) {
         this.fieldContext = fieldContext;
         this.listOptions = fieldContext.fieldExtension().getList();
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
 
         this.names = new NameVariants.FieldNames(fieldContext);
-        TypeUtils.TypeReference typeReference = fieldContext.executionContext().typeNames();
-        this.typeNames = typeReference.lookup(fieldDescriptorProto);
+        this.typeNames = fieldContext.executionContext().typeNames().lookup(fieldDescriptorProto);
     }
 
     @Override
@@ -66,7 +65,7 @@ public class ListFields implements FieldHandler {
         return mixinContext(methodDeclarationHeader(listOf(typeNames.boxed()), "get", names.name() + "List").append(";").toString());
     }
 
-    private String listOf(String boxed) {
+    public static String listOf(String boxed) {
         return "java.util.List<%s>".formatted(boxed);
     }
 
@@ -105,7 +104,7 @@ public class ListFields implements FieldHandler {
     }
 
     @Override
-    public GeneratedResponseFileCoordinates context() {
+    public FieldContext context() {
         return fieldContext;
     }
 }
