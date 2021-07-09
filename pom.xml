@@ -48,6 +48,7 @@
                         <configuration>
                             <sources>
                                 <source>src/main/proto</source>
+                                <source>target/generated-sources/protobuf</source>
                             </sources>
                         </configuration>
                     </execution>
