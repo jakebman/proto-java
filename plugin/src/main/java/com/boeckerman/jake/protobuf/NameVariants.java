@@ -11,7 +11,7 @@ public record NameVariants(
 ) {
     public NameVariants(Context.FieldContext fieldContext) {
         this(fieldContext.fieldDescriptorProto().getName(),
-                CamelCase(fieldContext.fieldDescriptorProto().getName()),
+                fieldContext.fieldDescriptorProto().getName(), // todo: very likely wrong
                 NullableFields.nullableName(fieldContext));
     }
     // the preferred name

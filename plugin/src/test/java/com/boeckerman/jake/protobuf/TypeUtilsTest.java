@@ -34,6 +34,6 @@ public class TypeUtilsTest {
         ));
         System.out.println(stringJavaTypeNamesMap.describe());
         assertThat(stringJavaTypeNamesMap.lookupMessageType(MESSAGE_NAME).boxed(),
-                is(JAVA_PACKAGE + TypeUtils.PACKAGE_SEPERATOR + CamelCase(MESSAGE_NAME)));
+                is(JAVA_PACKAGE + TypeUtils.PACKAGE_SEPERATOR + MESSAGE_NAME));
     }
 }

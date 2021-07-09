@@ -144,7 +144,7 @@ public class TypeUtils {
     }
 
     public static String javaClassName(DescriptorProto descriptorProto) {
-        return CodeGeneratorUtils.CamelCase(descriptorProto.getName());
+        return descriptorProto.getName();
     }
 
     static record ProtoAndJavaTypeNames(BoxingType boxingType, String proto_type_name) implements TypeNames {
