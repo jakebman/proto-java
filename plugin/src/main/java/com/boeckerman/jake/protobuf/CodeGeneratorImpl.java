@@ -4,17 +4,13 @@ import com.boeckerman.jake.protobuf.Context.FieldContext;
 import com.boeckerman.jake.protobuf.Context.FileContext;
 import com.boeckerman.jake.protobuf.Context.MessageContext;
 import com.boeckerman.jake.protobuf.Context.RootContext;
-import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension;
-import com.boeckerman.jake.protobuf.Extensions.JavaFieldExtension.ListOptions;
 import com.boeckerman.jake.protobuf.filecoordinates.CustomMixinFile;
 import com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint;
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
 import static com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.Feature;
@@ -74,21 +70,11 @@ public class CodeGeneratorImpl implements CodeGenerator {
             return StreamUtil.concat(
                     new NullableFields(fieldContext),
                     new ListFields(fieldContext),
-                    () -> applyAliasOptions(fieldContext),
-                    () -> applyBooleanOptions(fieldContext)
+                    new AliasFields(fieldContext),
+                    new BooleanFields(fieldContext)
             );
         } else {
             return Stream.empty();
         }
-    }
-
-    private Stream<File> applyAliasOptions(FieldContext fieldContext) {
-        // Stub.
-        return Stream.empty();
-    }
-
-    private Stream<File> applyBooleanOptions(FieldContext fieldContext) {
-        // Stub.
-        return Stream.empty();
     }
 }
