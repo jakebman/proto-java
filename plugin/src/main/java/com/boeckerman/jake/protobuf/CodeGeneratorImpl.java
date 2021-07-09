@@ -49,6 +49,7 @@ public class CodeGeneratorImpl implements CodeGenerator {
         if (messageContext.javaMessageExtensions().getEnabled()) {
             return StreamUtil.concat(
                     addMarkerInterfaceAndComment(messageContext),
+                    addImplementedInterfaces(messageContext),
                     messageContext.descriptorProto()
                             .getFieldList()
                             .stream()
@@ -57,6 +58,15 @@ public class CodeGeneratorImpl implements CodeGenerator {
                             .mapMulti(CustomMixinFile.alsoEmitMixinFileWhenNeeded(messageContext)));
         }
         return Stream.empty();
+    }
+
+    private Stream<File> addImplementedInterfaces(MessageContext messageContext) {
+        return messageContext.javaMessageExtensions()
+                .getImplementsList()
+                .stream()
+                .map(intface -> messageContext.fileBuilderFor(InsertionPoint.interface_extends)
+                        .setContent(intface + ", // added by protoc extension")
+                        .build());
     }
 
     private File addMarkerInterfaceAndComment(MessageContext messageContext) {
