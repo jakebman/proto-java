@@ -37,10 +37,7 @@ public class CustomMixinFile {
         return coordinates
                 .withInsertionPoint(InsertionPoint.interface_extends)
                 .fileBuilder()
-                .setContent(coordinates
-                        .javaFullClassNameBuilder()
-                        .append(",")
-                        .toString())
+                .setContent(coordinates.javaClassName() + ",")
                 .build();
     }
 
