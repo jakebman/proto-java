@@ -58,91 +58,124 @@ public class TypeUtils {
     public static TypeReference generateLookupTableFor(Collection<FileDescriptorProto> protoFileList) {
         Map<String, TypeNames> objects = protoFileList
                 .stream()
-                .flatMap(TypeUtils::allNestedNames)
-                .collect(Collectors.toMap(x -> "." + protoTypeName(x), ClassLike::new));
+                .flatMap(TypeUtils::allNestedCoordinates)
+                .collect(Collectors.toMap(x -> "." + protoFullTypeName(x), ClassLike::new));
         return new TypeReference(objects);
     }
 
-    static Stream<GeneratedResponseFileCoordinates> allNestedNames(FileDescriptorProto root) {
+    static Stream<GeneratedResponseFileCoordinates> allNestedCoordinates(FileDescriptorProto root) {
         return StreamUtil.<GeneratedResponseFileCoordinates>concat(
-                root
-                        .getMessageTypeList()
+                root.getMessageTypeList()
                         .stream()
-                        .map(descriptorProto -> new simple(root, descriptorProto))
-                        .flatMap(TypeUtils::allNestedNames),
+                        .map(descriptorProto -> new simple(root, descriptorProto, null))
+                        .flatMap(TypeUtils::allNestedCoordinates),
                 root.getEnumTypeList()
                         .stream()
                         .map(enumDescriptorProto ->
-                                HACK_coordinatesForEnumDescriptor(root, enumDescriptorProto.getName()))
+                                HACK_coordinatesForEnumDescriptor(root, enumDescriptorProto, null))
         );
     }
 
-    static Stream<GeneratedResponseFileCoordinates> allNestedNames(GeneratedResponseFileCoordinates root) {
+    static Stream<GeneratedResponseFileCoordinates> allNestedCoordinates(GeneratedResponseFileCoordinates parent) {
         return StreamUtil.<GeneratedResponseFileCoordinates>concat(
-                root,
-                root.descriptorProto()
+                parent,
+                parent.descriptorProto()
                         .getNestedTypeList()
                         .stream()
-                        .map(descriptorProto -> new simple(root.fileDescriptorProto(), descriptorProto.toBuilder()
-                                .setName(javaClassName(root) + PACKAGE_SEPERATOR + descriptorProto.getName()).build())) // TODO: does the nested message know its proper name?
-                        .flatMap(TypeUtils::allNestedNames),
-                root.descriptorProto()
+                        .map(descriptorProto -> new simple(parent.fileDescriptorProto(), descriptorProto, parent))
+                        .flatMap(TypeUtils::allNestedCoordinates),
+                parent.descriptorProto()
                         .getEnumTypeList()
                         .stream()
                         .map(enumDescriptorProto ->
-                                HACK_coordinatesForEnumDescriptor(root.fileDescriptorProto(),
-                                        javaClassName(root) + PACKAGE_SEPERATOR + enumDescriptorProto.getName())));
+                                HACK_coordinatesForEnumDescriptor(parent.fileDescriptorProto(), enumDescriptorProto, parent)));
     }
 
     // TODO: unwise shim, to allow protoTypeName to work
-    private static simple HACK_coordinatesForEnumDescriptor(FileDescriptorProto fileDescriptorProto, String name) {
-        return new simple(fileDescriptorProto,
+    private static simple HACK_coordinatesForEnumDescriptor(FileDescriptorProto fileDescriptorProto, DescriptorProtos.EnumDescriptorProto enumDescriptorProto, GeneratedResponseFileCoordinates parent) {
+        return new simple(
+                fileDescriptorProto,
                 DescriptorProto.newBuilder()
-                        .setName(name)
-                        .build());
+                        .setName(enumDescriptorProto.getName())
+                        .build(),
+                parent);
     }
 
     public static String PACKAGE_SEPERATOR = ".";
 
-    public static String protoTypeName(GeneratedResponseFileCoordinates coordinates) {
-        String messageDescriptorTypename = coordinates.descriptorProto().getName();
-        FileDescriptorProto fileDescriptorProto = coordinates.fileDescriptorProto();
-
-        if (fileDescriptorProto.hasPackage()) {
-            return fileDescriptorProto.getPackage() + PACKAGE_SEPERATOR + messageDescriptorTypename;
+    public static void appendPackageSeperatorIfNecessary(StringBuilder out) {
+        // append the package separator if the buffer is non-empty, and doesn't end in a dot.
+        if (out.length() > 0 && out.charAt(out.length() - 1) != '.') {
+            out.append(PACKAGE_SEPERATOR);
         }
-        return messageDescriptorTypename;
+    }
+
+
+    public static StringBuilder protoFullTypeName(GeneratedResponseFileCoordinates coordinates) {
+        StringBuilder out;
+        GeneratedResponseFileCoordinates parent = coordinates.parent();
+        if (parent == null) {
+            out = new StringBuilder(coordinates.fileDescriptorProto().getPackage());
+        } else {
+            out = protoFullTypeName(parent);
+        }
+
+        appendPackageSeperatorIfNecessary(out);
+        out.append(coordinates.descriptorProto().getName());
+        return out;
     }
 
     public static String javaFullClassName(GeneratedResponseFileCoordinates messageContext) {
-        StringBuilder out = new StringBuilder(javaPackage(messageContext));
-
-        if (out.length() > 0) {
-            out.append(TypeUtils.PACKAGE_SEPERATOR);
-        }
-
-        out.append(javaClassName(messageContext.descriptorProto()));
+        StringBuilder out = javaFullClassNamePrefixBuilder(messageContext);
+        appendPackageSeperatorIfNecessary(out);
+        out.append(javaClassName(messageContext));
 
         return out.toString();
     }
 
+    // everything but the final class name - necessary for CustomMixin work
+    public static StringBuilder javaFullClassNamePrefixBuilder(GeneratedResponseFileCoordinates fileCoordinates) {
+        StringBuilder out = new StringBuilder(javaPackage(fileCoordinates));
+        appendPackageSeperatorIfNecessary(out);
+        appendNestedClassParents(out, fileCoordinates.parent());
+        return out;
+    }
+
+    // recursive parent finding
+    private static void appendNestedClassParents(StringBuilder out, GeneratedResponseFileCoordinates fileCoordinates) {
+        if (fileCoordinates == null) {
+            return; // do no work
+        }
+        appendNestedClassParents(out, fileCoordinates.parent());
+
+        appendPackageSeperatorIfNecessary(out);
+        out.append(javaClassName(fileCoordinates.descriptorProto()));
+    }
+
+    // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     public static String javaPackage(GeneratedResponseFileCoordinates messageContext) {
-        DescriptorProtos.FileOptions options = messageContext.fileDescriptorProto().getOptions();
+        return javaPackage(messageContext.fileDescriptorProto());
+    }
+
+    // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
+    public static String javaPackage(FileDescriptorProto fileDescriptorProto) {
+        DescriptorProtos.FileOptions options = fileDescriptorProto.getOptions();
 
         if (options.hasJavaPackage()) {
             return options.getJavaPackage();
-        } else if (messageContext.fileDescriptorProto().hasPackage()) {
-            return messageContext.fileDescriptorProto().getPackage();
+        } else if (fileDescriptorProto.hasPackage()) {
+            return fileDescriptorProto.getPackage();
         } else {
             return "";
         }
     }
 
-
+    // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     public static String javaClassName(GeneratedResponseFileCoordinates fileCoordinates) {
         return javaClassName(fileCoordinates.descriptorProto());
     }
 
+    // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     public static String javaClassName(DescriptorProto descriptorProto) {
         return descriptorProto.getName();
     }
@@ -320,7 +353,7 @@ public class TypeUtils {
                             String proto_type_name,
                             DescriptorProto descriptorProto) implements TypeNames {
         public ClassLike(GeneratedResponseFileCoordinates protoIdentifier) {
-            this(javaFullClassName(protoIdentifier), protoTypeName(protoIdentifier), protoIdentifier.descriptorProto());
+            this(javaFullClassName(protoIdentifier), protoFullTypeName(protoIdentifier).toString(), protoIdentifier.descriptorProto());
         }
 
         @Override

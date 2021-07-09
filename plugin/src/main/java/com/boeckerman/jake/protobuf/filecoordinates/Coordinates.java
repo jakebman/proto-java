@@ -5,6 +5,7 @@ import com.boeckerman.jake.protobuf.TypeUtils;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 
+import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 import static com.boeckerman.jake.protobuf.filecoordinates.InsertionPoint.INSERTION_POINT_JOIN;
@@ -52,26 +53,16 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
         if (insertionPoint == InsertionPoint.outer_class_scope) {
             return insertionPoint.name();
         }
-        return insertionPoint.name() + INSERTION_POINT_JOIN + TypeUtils.protoTypeName(this);
+        return insertionPoint.name() + INSERTION_POINT_JOIN + TypeUtils.protoFullTypeName(this);
     }
 
-    StringBuilder javaFullClassNameBuilder() {
-        StringBuilder out = new StringBuilder(javaPackage());
-
-        if (out.length() > 0) {
-            out.append(TypeUtils.PACKAGE_SEPERATOR);
-        }
-
-        out.append(javaClassName());
-
-        return out;
-    }
-
+    // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     String javaClassName() {
         //This mangling is important to address OrBuilder and _Mixin interfaces
         return insertionPoint.mangleJavaClassName(TypeUtils.javaClassName(this));
     }
 
+    // Warning: javaPackage + javaClass != javaFullClassName (nested classes)
     String javaPackage() {
         return TypeUtils.javaPackage(this);
     }
@@ -107,5 +98,11 @@ record Coordinates(GeneratedResponseFileCoordinates fileIdentifier,
 
     public DescriptorProtos.DescriptorProto descriptorProto() {
         return fileIdentifier().descriptorProto();
+    }
+
+    @Nullable
+    @Override
+    public GeneratedResponseFileCoordinates parent() {
+        return fileIdentifier().parent();
     }
 }

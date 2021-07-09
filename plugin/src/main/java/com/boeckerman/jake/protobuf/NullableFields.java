@@ -19,19 +19,21 @@ public class NullableFields implements FieldHandler {
     private final DescriptorProtos.FieldDescriptorProto fieldDescriptorProto;
     private final NullableOptions nullableOptions;
     private final TypeUtils.TypeNames typeNames;
-    private final NameVariants nameVariants;
+    private final NameVariants.FieldNames nameVariants;
 
     public NullableFields(FieldContext fieldContext) {
         this.fieldContext = fieldContext;
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
         this.nullableOptions = fieldContext.fieldExtension().getNullable();
         this.typeNames = fieldContext.executionContext().typeNames().lookup(fieldDescriptorProto);
-        this.nameVariants = new NameVariants(fieldContext);
+        this.nameVariants = new NameVariants.FieldNames(fieldContext);
     }
 
     public static String nullableName(FieldContext fieldContext) {
-        DescriptorProtos.FieldDescriptorProto fieldDescriptorProto = fieldContext.fieldDescriptorProto();
-        NullableOptions nullableOptions = fieldContext.fieldExtension().getNullable();
+        return _nullableName(fieldContext.fieldDescriptorProto(), fieldContext.fieldExtension().getNullable());
+    }
+
+    public static String _nullableName(DescriptorProtos.FieldDescriptorProto fieldDescriptorProto, NullableOptions nullableOptions) {
         boolean primitive = isPrimitive(fieldDescriptorProto.getType());
         return CamelCase(primitive ?
                 StringUtils.removeEnd(fieldDescriptorProto.getName(), nullableOptions.getPrimitiveSuffix()) :
@@ -40,14 +42,14 @@ public class NullableFields implements FieldHandler {
 
     @Override
     public Stream<File> get() {
-        boolean hasObjectSuffix = nameVariants.original_name_from_proto_file().endsWith(nullableOptions.getObjectSuffix());
-        boolean hasPrimitiveSuffix = nameVariants.original_name_from_proto_file().endsWith(nullableOptions.getPrimitiveSuffix());
+        boolean hasObjectSuffix = nameVariants.proto_name().endsWith(nullableOptions.getObjectSuffix());
+        boolean hasPrimitiveSuffix = nameVariants.proto_name().endsWith(nullableOptions.getPrimitiveSuffix());
 
         if (fieldDescriptorProto.getLabel() != LABEL_OPTIONAL) {
             if (hasPrimitiveSuffix || hasObjectSuffix) {
                 return warningResponse(MessageFormat.format(
                         "// Heads up! the field {0} isn't optional, but would otherwise be covered by {1}",
-                        nameVariants.original_name_from_proto_file(),
+                        nameVariants.proto_name(),
                         NullableOptions.class.getName()));
             }
             return Stream.empty();
@@ -64,7 +66,7 @@ public class NullableFields implements FieldHandler {
         } else {
             return warningResponse(MessageFormat.format(
                     "// Heads up! the field {0} is {1}, but has the {2} suffix ({3})",
-                    nameVariants.original_name_from_proto_file(),
+                    nameVariants.proto_name(),
                     (primitive ? "primitive" : "an object"),
                     (!primitive ? "primitive" : "object"),
                     CodeGeneratorUtils.debugPeek(nullableOptions)));

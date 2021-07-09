@@ -5,6 +5,7 @@ import com.boeckerman.jake.protobuf.Extensions.JavaGlobalOptions;
 import com.boeckerman.jake.protobuf.Extensions.JavaMessageExtensions;
 import com.boeckerman.jake.protobuf.filecoordinates.GeneratedResponseFileCoordinates;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
@@ -52,38 +53,83 @@ public class Context {
             return new MessageContext(this, descriptorProto);
         }
 
+        EnumContext withEnum(EnumDescriptorProto enumDescriptorProto) {
+            return new EnumContext(this, enumDescriptorProto);
+        }
     }
 
     static JavaMessageExtensions enhancedExtensionOptions(JavaGlobalOptions javaGlobalOptions,
                                                           DescriptorProto descriptorProto) {
 
-        JavaMessageExtensions.Builder builder = javaGlobalOptions
-                .getGlobals()
-                .toBuilder()
-                .mergeFrom(descriptorProto
-                        .getOptions()
-                        .getExtension(Extensions.javaHelperMessage));
+        JavaMessageExtensions.Builder builder = merge(javaGlobalOptions.getGlobals(), descriptorProto);
 
+        // allow for a friendly, top-level enabled flag.
         if (!builder.hasEnabled()) {
             builder.setEnabled(javaGlobalOptions.getEnabled());
         }
         return builder.build();
     }
 
+    private static JavaMessageExtensions.Builder merge(JavaMessageExtensions defaults, DescriptorProto descriptorProto) {
+        return defaults
+                .toBuilder()
+                .mergeFrom(descriptorProto
+                        .getOptions()
+                        .getExtension(Extensions.javaHelperMessage));
+    }
+
     static record MessageContext(CodeGeneratorRequest request,
                                  ExecutionContext executionContext,
                                  FileDescriptorProto fileDescriptorProto,
+                                 MessageContext parent,
                                  DescriptorProto descriptorProto,
                                  JavaMessageExtensions javaMessageExtensions)
             implements GeneratedResponseFileCoordinates {
         public MessageContext(FileContext fileContext, DescriptorProto descriptorProto) {
             this(fileContext.request, fileContext.executionContext, fileContext.fileDescriptorProto,
-                    descriptorProto, enhancedExtensionOptions(fileContext.javaGlobalOptions, descriptorProto)
-            );
+                    null, descriptorProto, enhancedExtensionOptions(fileContext.javaGlobalOptions, descriptorProto));
+        }
+
+        public MessageContext(MessageContext parent, DescriptorProto descriptorProto) {
+            this(parent.request, parent.executionContext, parent.fileDescriptorProto,
+                    parent, descriptorProto, merge(parent.javaMessageExtensions, descriptorProto).build());
         }
 
         FieldContext withFieldDescriptor(FieldDescriptorProto fieldDescriptorProto) {
             return new FieldContext(this, fieldDescriptorProto);
+        }
+
+        @Override
+        public MessageContext childFor(DescriptorProto descriptorProto) {
+            return new MessageContext(this, descriptorProto);
+        }
+
+        @Override
+        public EnumContext childFor(EnumDescriptorProto enumDescriptorProto) {
+            return new EnumContext(this, enumDescriptorProto);
+        }
+    }
+
+    static record EnumContext(CodeGeneratorRequest request,
+                              ExecutionContext executionContext,
+                              FileDescriptorProto fileDescriptorProto,
+                              GeneratedResponseFileCoordinates parent,
+                              EnumDescriptorProto enumDescriptorProto)
+            implements GeneratedResponseFileCoordinates {
+        public EnumContext(MessageContext parent, EnumDescriptorProto enumDescriptorProto) {
+            this(parent.request, parent.executionContext, parent.fileDescriptorProto, parent,
+                    enumDescriptorProto);
+        }
+
+        public EnumContext(FileContext parent, EnumDescriptorProto enumDescriptorProto) {
+            this(parent.request, parent.executionContext, parent.fileDescriptorProto, null,
+                    enumDescriptorProto);
+        }
+
+        @Override
+        public DescriptorProto descriptorProto() {
+            // we're not really a descriptor, but we can act like one
+            return DescriptorProto.newBuilder().setName(enumDescriptorProto.getName()).build();
         }
     }
 
@@ -104,12 +150,13 @@ public class Context {
                                ExecutionContext executionContext,
                                FileDescriptorProto fileDescriptorProto,
                                DescriptorProto descriptorProto,
+                               GeneratedResponseFileCoordinates parent,
                                FieldDescriptorProto fieldDescriptorProto,
                                JavaFieldExtension fieldExtension)
             implements GeneratedResponseFileCoordinates {
-        public FieldContext(MessageContext messageContext, FieldDescriptorProto fieldDescriptorProto) {
-            this(messageContext.request, messageContext.executionContext, messageContext.fileDescriptorProto, messageContext.descriptorProto,
-                    fieldDescriptorProto, enhancedFieldExtensions(messageContext.javaMessageExtensions, fieldDescriptorProto));
+        public FieldContext(MessageContext parent, FieldDescriptorProto fieldDescriptorProto) {
+            this(parent.request, parent.executionContext, parent.fileDescriptorProto, parent.descriptorProto,
+                    parent, fieldDescriptorProto, enhancedFieldExtensions(parent.javaMessageExtensions, fieldDescriptorProto));
         }
     }
 }

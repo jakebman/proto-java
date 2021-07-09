@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+
+option java_multiple_files = true;
+
+
+message Nesting1 {
+  optional string name = 1;
+  message Nesting2 {
+    optional string name = 1;
+    message Nesting3 {
+      optional string name = 1;
+      message Nesting4 {
+        optional string name = 1;
+        message Nesting5 {
+          optional string name = 1;
+          repeated Nesting5 children =2;
+        }
+        Nesting5 nest = 2;
+      }
+      Nesting4 nest = 2;
+    }
+    Nesting3 nest = 2;
+  }
+  Nesting2 nest = 2;
+
+
+  reserved 15; // For future use: if we figure out some nested message packing scheme, I want a single-byte field id free
+}

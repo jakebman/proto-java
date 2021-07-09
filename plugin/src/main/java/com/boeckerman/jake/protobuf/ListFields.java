@@ -19,7 +19,7 @@ public class ListFields implements FieldHandler {
         this.listOptions = fieldContext.fieldExtension().getList();
         this.fieldDescriptorProto = fieldContext.fieldDescriptorProto();
 
-        this.names = new NameVariants(fieldContext);
+        this.names = new NameVariants.FieldNames(fieldContext);
         TypeUtils.TypeReference typeReference = fieldContext.executionContext().typeNames();
         this.typeNames = typeReference.lookup(fieldDescriptorProto);
     }
