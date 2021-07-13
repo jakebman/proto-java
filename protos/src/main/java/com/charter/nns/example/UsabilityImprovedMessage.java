@@ -1,4 +1,4 @@
-package com.boeckerman.jake;
+package com.charter.nns.example;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;

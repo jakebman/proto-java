@@ -1,7 +1,7 @@
 syntax = "proto2";
 import "google/protobuf/descriptor.proto";
-package boeckerman.jake.protobuf;
-option java_package = "com.boeckerman.jake.protobuf";
+package nns;
+option java_package = "com.charter.nns.protobuf";
 
 // These extensions will use id 52532, which is JAKEB in T9.
 

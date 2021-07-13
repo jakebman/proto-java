@@ -1,6 +1,6 @@
 package com.charter.nns.protobuf;
 
-import com.boeckerman.jake.UsabilityImprovedMessage;
+import com.charter.nns.example.UsabilityImprovedMessage;
 import com.google.protobuf.ByteString;
 import org.junit.Test;
 

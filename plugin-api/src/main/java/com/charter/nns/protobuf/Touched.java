@@ -10,5 +10,5 @@ import com.google.protobuf.GeneratedMessage;
  */
 public interface Touched {
     GeneratedMessage.GeneratedExtension<DescriptorProtos.FieldOptions, Extensions.JavaFieldExtension> by = Extensions.javaHelper;
-    String MESSAGE = "added by Jake Boeckerman's protoc plugin, for traceabiltiy purposes";
+    String MESSAGE = "added by the NNS protoc plugin, for traceability purposes";
 }

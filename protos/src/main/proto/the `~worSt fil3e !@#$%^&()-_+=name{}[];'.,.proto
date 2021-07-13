@@ -4,7 +4,7 @@ syntax="proto3";
 
 import "test-imports.proto";
 
-package boeckerman.jake.protobuf;
+package nns;
 
 message importer3 {
   repeated importer persons = 1;
