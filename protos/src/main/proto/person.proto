@@ -33,6 +33,12 @@ message Person {
   //  NON-COMPATIBLE CHANGE, conflicts on 1 with name, and is a different type
   //  required int32 name = 1;
   int32 id = 2;
+  /* If you:
+      * Have enabled the plugin
+      * have an optional primitive field (not string or a nested message
+      * and that primitive field's name ends in "_primitive"
+     We generate a nullable field, based on the name-minus-primitive
+  */
   optional int64 some_primitive = 44;
   //  required int32 newid = 2;
   repeated string description = 45;

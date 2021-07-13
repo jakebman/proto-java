@@ -5,8 +5,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>protobuf-example-root</artifactId>
-    <groupId>com.boeckerman.jake.protobuf</groupId>
+    <artifactId>protobuf-tools-root</artifactId>
+    <groupId>com.charter.nns.protobuf</groupId>
     <version>${revision}${sha1}${changelist}</version>
   </parent>
 
@@ -45,7 +45,7 @@
       <version>${project.version}</version>
       <scope>compile</scope>
       <!-- plugin-api is a transitive dependency of plugin, so we already use plugin-api implicitly.
-         But! there's a chance for subtle errors if we ever reference com.boeckerman.jake.protobuf.Extensions
+         But! there's a chance for subtle errors if we ever reference com.charter.nns.protobuf.Extensions
          or any of the other generated classes ("provided" scope means "compile, expecting this object to exist
          at runtime", and therefore, if the object is missing at runtime? Errors *galore*) -->
     </dependency>
@@ -94,11 +94,11 @@
               <protocPlugins>
                 <!-- https://www.xolstice.org/protobuf-maven-plugin/examples/protoc-plugin.html -->
                 <protocPlugin>
-                  <id>jakeProtoPlugin</id>
+                  <id>protoc</id>
                   <groupId>${project.groupId}</groupId>
                   <artifactId>plugin</artifactId>
                   <version>${project.version}</version>
-                  <mainClass>com.boeckerman.jake.protobuf.Plugin</mainClass>
+                  <mainClass>com.charter.nns.protobuf.Plugin</mainClass>
                   <args>DEBUG,ENABLE_EVERYWHERE</args>
                 </protocPlugin>
               </protocPlugins>
