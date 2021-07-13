@@ -1,4 +1,3 @@
-
 # This file has been modified from the template at https://gitlab.com/gitlab-examples/maven/simple-maven-dep/-/blob/master/.gitlab-ci.yml
 # Build JAVA applications using Apache Maven (http://maven.apache.org)
 # For docker image tags see https://hub.docker.com/_/maven/
@@ -37,15 +36,15 @@ cache:
   except:
     - master
 
-# Verify merge requests using JDK8
-verify:jdk16:
+# Verify merge requests using the jdk from the maven image
+verify:maven-latest:
   <<: *verify
 
 # To deploy packages from CI, create a ci_settings.xml file
 # For deploying packages to GitLab's Maven Repository: See https://docs.gitlab.com/ee/user/project/packages/maven_repository.html#creating-maven-packages-with-gitlab-cicd for more details.
 # Please note: The GitLab Maven Repository is currently only available in GitLab Premium / Ultimate.
 # For `master` branch run `mvn deploy` automatically.
-deploy:jdk16:
+deploy:maven-latest:
   stage: deploy
   artifacts:
     when: always
