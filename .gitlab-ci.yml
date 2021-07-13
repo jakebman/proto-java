@@ -40,7 +40,7 @@ cache:
 # gitlab lets you hide steps like .verify here, and use them as yaml "Node Anchors", which can be used 
 # as a shared config between multiple gitlab pipeline steps
 # Gitlab docs: https://docs.gitlab.com/ce/ci/yaml/index.html#anchors
-# yaml spec: https://yaml.org/spec/1.2/spec.html#id2785586
+# yaml spec, section 6.9.2. Node Anchors: https://yaml.org/spec/1.2/spec.html#id2785586
 .verify: &verify
   stage: test
   script:
