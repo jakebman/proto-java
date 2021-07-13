@@ -18,7 +18,16 @@ variables:
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
 
-# This template uses jdk16 for verifying and deploying images
+# We use whatever the latest maven docker image is.
+# I (Jake) have full faith in maven and the JDK's committment to backwards-compatibility enough that I trust
+# that they're capable of compiling our source code far into the future.
+# Our `<maven.compiler.source>16</maven.compiler.source>` declaration should also allow future jdk compilers to compile our code
+# even if there are future language changes that would otherwise keep our code from compiling. This is not fool-proof, but
+# it should be good enough for what we need to do:
+# https://maven.apache.org/plugins/maven-compiler-plugin/examples/set-compiler-source-and-target.html
+# In the future, if this ever ends up causing us grief, the original image was maven:3.8.1-openjdk-16, but https://gitlab.se-charter.net/'s runners don't like that tag. Which is weird, because they're identical today 7/13/2021:
+# https://hub.docker.com/layers/maven/library/maven/latest/images/sha256-6fa8801ba54f737292f9ec0072d81330f61a15ed9872a94edef3919dc27312e7?context=explore
+# https://hub.docker.com/layers/maven/library/maven/3.8.1-openjdk-16/images/sha256-6fa8801ba54f737292f9ec0072d81330f61a15ed9872a94edef3919dc27312e7?context=explore
 image: maven:latest
 
 # Cache downloaded dependencies and plugins between builds.
