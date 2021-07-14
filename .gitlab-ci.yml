@@ -15,10 +15,6 @@ variables:
     value: ".m2/repository"
     description: "Maven Local Repo"
 
-  # We may want to remove this variable, but sounds like a good idea to have it a this time
-  MASTER_BRANCH_NAME:
-    value: "master"
-    description: "Master Branch Name"
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
   MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/$MAVEN_REPO -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
@@ -54,9 +50,9 @@ cache:
   stage: test
   script:
     - echo "Verification for $CI_COMMIT_REF_NAME branch"; mvn $MAVEN_CLI_OPTS verify
-  except:
-    variables:
-      - $MASTER_BRANCH_NAME == $CI_COMMIT_REF_NAME
+  rules:
+    #  We merely validate feature branches (the default branch gets a *full* build below
+    - if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
 
 # Verify merge requests using the jdk from the maven image
 verify:maven-latest:
@@ -79,6 +75,6 @@ deploy:maven-latest:
       else
       mvn $MAVEN_CLI_OPTS deploy --settings ci_settings.xml;
       fi
-  only:
-    variables:
-      - $MASTER_BRANCH_NAME == $CI_COMMIT_REF_NAME
+  rules:
+    #  If changes are pushed to the default branch. https://docs.gitlab.com/ce/ci/jobs/job_control.html#common-if-clauses-for-rules
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
