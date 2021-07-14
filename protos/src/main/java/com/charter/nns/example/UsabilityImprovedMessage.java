@@ -26,6 +26,9 @@ public interface UsabilityImprovedMessage extends Message {
              GZIPOutputStream writeable = new GZIPOutputStream(buffer)) {
             this.writeTo(writeable);
         }
+        // bug potential: We're closing an OutputStream that we then return.
+        // Closed output streams are usually useless
+        // thankfully, ByteArrayOutputStream is tolerant of this.
         outputStream.close();
         return outputStream;
     }
