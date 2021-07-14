@@ -77,25 +77,15 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
         return Stream.of(has(), getter(), nullableGetter(), nullableSetter(), nullableHas());
     }
 
-    // NOT needed for the mixin to compile (the setter gets directly injected into the Builder, which already has this defined.
-    private File setter() {
-        return builderContext(methodDeclarationHeader("void", "set", nameVariants.protoGeneratedName(), protoType() + " value").append(";").toString());
-    }
-
-    // NOT needed for the mixin to compile (the setter gets directly injected into the Builder, which already has this defined.
-    private File clearer() {
-        return builderContext(methodDeclarationHeader("void", "clear", nameVariants.protoGeneratedName()).append(";").toString());
-    }
-
     private File nullableSetter() {
         return builderContext("""
-                %s // nullable field setter, which forwards to traditional builder methods
+                public final %s // nullable field setter, which forwards to traditional builder methods
                 {
                     if(value == null) return %s;
                     else return %s;
                 }
                 """.formatted(
-                methodDeclarationHeader("public final Builder", "set", nameVariants.nullableName(), nullableType() + " value"),
+                methodDeclarationHeader("Builder", "set", nameVariants.nullableName(), nullableType() + " value"),
                 methodInvoke("clear", nameVariants.protoGeneratedName()),
                 methodInvoke("set", nameVariants.protoGeneratedName(), "value")));
     }

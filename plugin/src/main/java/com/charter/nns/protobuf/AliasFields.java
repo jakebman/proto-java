@@ -116,7 +116,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
 
     private File aliasSetter(String method) {
         return builderContext("""
-                Builder %s(%s value) // alias setter
+                public final Builder %s(%s value) // alias setter
                 {
                     return %s;
                 }
@@ -131,7 +131,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
 
     private File aliasClearer(String method) {
         return builderContext("""
-                Builder %s() // alias clear-er
+                public final Builder %s() // alias clear-er
                 {
                     return %s;
                 }

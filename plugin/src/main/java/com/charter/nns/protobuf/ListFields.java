@@ -67,7 +67,7 @@ public class ListFields implements FieldHandler, GetterSetterHelper {
     private File addAllAcceptsStream() {
         // nb: `%1$s` references the first argument to formatted
         return builderContext("""
-                Builder addAll%1$s(java.util.stream.Stream<%2$s> value) // Stream-friendly addAll
+                public final Builder addAll%1$s(java.util.stream.Stream<%2$s> value) // Stream-friendly addAll
                 {
                     return addAll%1$s(value.collect(java.util.stream.Collectors.toList()));
                 }
