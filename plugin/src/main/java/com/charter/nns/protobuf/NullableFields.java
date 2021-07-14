@@ -58,22 +58,23 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
         }
 
         boolean primitive = typeNames.isPrimitive();
+        boolean isObject = !primitive;
         if (primitive && hasPrimitiveSuffix) {
             return response();
-        } else if (!primitive && hasObjectSuffix) {
+        } else if (isObject && hasObjectSuffix) {
             return response();
         } else {
             return warningResponse(MessageFormat.format(
                     "// Heads up! the field {0} is {1}, but has the {2} suffix ({3})",
                     nameVariants.proto_name(),
                     (primitive ? "primitive" : "an object"),
-                    (!primitive ? "primitive" : "object"),
+                    (primitive ? "object" : "primitive"),
                     CodeGeneratorUtils.debugPeek(nullableOptions)));
         }
     }
 
     private Stream<File> response() {
-        return Stream.of(has(), getter(), nullableGetter(), nullableSetter());
+        return Stream.of(has(), getter(), nullableGetter(), nullableSetter(), nullableHas());
     }
 
     // NOT needed for the mixin to compile (the setter gets directly injected into the Builder, which already has this defined.
@@ -94,7 +95,7 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
                     else return %s;
                 }
                 """.formatted(
-                methodDeclarationHeader("Builder", "set", nameVariants.nullableName(), nullableType() + " value"),
+                methodDeclarationHeader("public final Builder", "set", nameVariants.nullableName(), nullableType() + " value"),
                 methodInvoke("clear", nameVariants.protoGeneratedName()),
                 methodInvoke("set", nameVariants.protoGeneratedName(), "value")));
     }
@@ -110,6 +111,17 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
                 methodDeclarationHeader(nullableType(), "get", nameVariants.nullableName()),
                 methodInvoke("has", nameVariants.protoGeneratedName()),
                 methodInvoke("get", nameVariants.protoGeneratedName())));
+    }
+
+    private File nullableHas() {
+        return mixinContext("""
+                default %s // nullable field has which forwards to traditional has
+                {
+                    return %s;
+                }
+                """.formatted(
+                methodDeclarationHeader("boolean", "has", nameVariants.nullableName()),
+                methodInvoke("has", nameVariants.protoGeneratedName())));
     }
 
     @Override
