@@ -140,4 +140,16 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <distributionManagement>
+        <repository>
+            <id>se-artifactory-releases</id>
+            <name>AWS SE Release artifactory</name>
+            <url>https://artifactory.se-charter.net/artifactory/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>se-artifactory-snapshots</id>
+            <name>AWS SE Snapshot artifactory</name>
+            <url>https://artifactory.se-charter.net/artifactory/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
