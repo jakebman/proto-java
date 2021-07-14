@@ -1,7 +1,7 @@
 syntax = "proto3";
 option java_multiple_files = true;
-option java_package = "com.boeckerman.jake.protobuf";
-package boeckerman.jake.protobuf;
+option java_package = "com.charter.nns.protobuf";
+package nns;
 
 // the IntelliJ proto editor plugin doesn't like this, but the maven plugin brings it in, so this does compile.
 import "google/protobuf/compiler/plugin.proto";

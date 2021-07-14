@@ -13,7 +13,7 @@ import "person.proto";
   Also, message names are resolved within a package,
   so we need this package declaration here to use the bare name `Person`
  */
-package boeckerman.jake.protobuf;
+package nns;
 
 message importer {
   repeated Person persons = 1;
