@@ -15,8 +15,6 @@
     <properties>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
-        <!-- Override the parent's property on this - we want to deploy the plugin -->
-        <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
     <dependencies>

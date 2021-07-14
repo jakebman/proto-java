@@ -13,9 +13,11 @@
     <artifactId>google-plugin-api-to-appease-intellij</artifactId>
     <name>google-plugin-api-to-appease-intellij</name>
     <packaging>pom</packaging>
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
 
+    <properties>
+        <!-- Don't deploy this artifact - nobody cares about any of the modules except the plugin and its api -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <build>
         <sourceDirectory>src/main/proto</sourceDirectory>
