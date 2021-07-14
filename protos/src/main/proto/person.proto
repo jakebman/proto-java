@@ -1,8 +1,8 @@
 syntax = "proto3";
 option java_multiple_files = true;
 option java_outer_classname = "somePersonOuterClassThing";
-option java_package = "com.boeckerman.jake.protobuf";
-package boeckerman.jake.protobuf; // proto packages don't care for reverse url phrasing
+option java_package = "com.charter.nns.protobuf";
+package nns; // proto packages don't care for reverse url phrasing
 
 
 //Changes that break downstream Java code:
@@ -22,11 +22,11 @@ import "boeckerman/jake/protobuf/extensions.proto"; //Woo! it works!
 
 message Person {
   // see https://developers.google.com/protocol-buffers/docs/proto#customoptions
-  //  option (boeckerman.jake.protobuf.java_helper_message).enabled = true;
-  //  option (boeckerman.jake.protobuf.java_helper_message).implements = "com.boeckerman.jake.UsabilityImprovedMessage";
-  option (boeckerman.jake.protobuf.java_helper_message) = {
+  //  option (nns.java_helper_message).enabled = true;
+  //  option (nns.java_helper_message).implements = "com.charter.nns.UsabilityImprovedMessage";
+  option (nns.java_helper_message) = {
     enabled:true,
-    implements:["com.boeckerman.jake.UsabilityImprovedMessage", "java.io.Serializable"]
+    implements:["com.charter.nns.example.UsabilityImprovedMessage", "java.io.Serializable"]
   };
   message Nested{int32 field = 1;}
   string name = 1;
