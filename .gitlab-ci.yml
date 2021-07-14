@@ -67,7 +67,7 @@ deploy:maven-latest:
   artifacts:
     when: always
     paths:
-      - target/*.jar
+      - "**/target/*.jar"
     expire_in: 7 days
   script:
     - if [ ! -f ci_settings.xml ];
