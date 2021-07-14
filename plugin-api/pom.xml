@@ -13,6 +13,11 @@
     <artifactId>plugin-api</artifactId>
     <version>${revision}${sha1}${changelist}</version>
 
+    <properties>
+        <!-- Override the parent's property on this - we want to deploy the plugin-api -->
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
         <dependency>
