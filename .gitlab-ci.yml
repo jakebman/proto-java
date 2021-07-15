@@ -75,8 +75,8 @@ deploy:maven-latest:
     expire_in: 7 days
   script:
     # Heads up - all whitespace in here is a space. There are no newlines. Use semicolons
-    - if [ -z "$SE_ARTIFACTORY_PASSWORD" ]; then
-      # >2 is std-error
+    # >2 is std-error
+    - if [ -z "$SE_ARTIFACTORY_PASSWORD" ]; then 
       echo >2 WARNING!!! COULD NOT READ THE DEPLOY PASSWORD;
       echo >2 the deploy password is stored in a protected variable, and your deploy will fail if we cannot read it;
       elif [ ! -f ci_settings.xml ]; then
