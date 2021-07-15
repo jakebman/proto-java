@@ -76,7 +76,7 @@ deploy:maven-latest:
   script:
     # Heads up - all whitespace in here is a space. There are no newlines. Use semicolons
     - if [ -z "$SE_ARTIFACTORY_PASSWORD" ]; then
-      echo  WARNING!!! COULD NOT READ THE DEPLOY PASSWORD;
+      echo  "WARNING!!! COULD NOT READ THE DEPLOY PASSWORD";
       echo  the deploy password is stored in a protected variable, and your deploy will fail if we cannot read it;
       exit 1
       elif [ ! -f ci_settings.xml ]; then
