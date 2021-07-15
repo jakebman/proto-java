@@ -77,13 +77,12 @@ deploy:maven-latest:
     # Heads up - all whitespace in here is a space. There are no newlines. Use semicolons
     - if [ -z "$SE_ARTIFACTORY_PASSWORD" ]; then
         # >2 is std-error
-        >2 echo WARNING!!! COULD NOT READ THE DEPLOY PASSWORD;
-        >2 echo the deploy password is stored in a protected variable, and your deploy will fail if we cannot read it;
-      fi
-    - if [ ! -f ci_settings.xml ];
-      then echo "CI settings missing\! If deploying to GitLab Maven Repository, please see https://docs.gitlab.com/ee/user/project/packages/maven_repository.html#creating-maven-packages-with-gitlab-cicd for instructions.";
+        echo >2 WARNING!!! COULD NOT READ THE DEPLOY PASSWORD;
+        echo >2 the deploy password is stored in a protected variable, and your deploy will fail if we cannot read it;
+      elif [ ! -f ci_settings.xml ]; then
+        echo >2 "CI settings missing\! If deploying to GitLab Maven Repository, please see https://docs.gitlab.com/ee/user/project/packages/maven_repository.html#creating-maven-packages-with-gitlab-cicd for instructions.";
       else
-      mvn $MAVEN_CLI_OPTS deploy --settings ci_settings.xml;
+        mvn $MAVEN_CLI_OPTS deploy --settings ci_settings.xml;
       fi
   rules:
     #  If changes are pushed to the default branch. https://docs.gitlab.com/ce/ci/jobs/job_control.html#common-if-clauses-for-rules
