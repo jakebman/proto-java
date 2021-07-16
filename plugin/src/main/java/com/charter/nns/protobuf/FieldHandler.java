@@ -50,13 +50,10 @@ public interface FieldHandler extends Supplier<Stream<File>> {
     // OR
     // setBar(one, two)
     default StringBuilder methodInvoke(String verb, String fieldName, StringBuilder out, String... args) {
-        return methodName(verb, fieldName, out)
+        out.append(verb);
+        out.append(fieldName);
+        return out
                 .append(Arrays.stream(args).collect(Collectors.joining(",", "(", ")")));
     }
 
-    default StringBuilder methodName(String verb, String fieldName, StringBuilder out) {
-        out.append(verb);
-        out.append(fieldName);
-        return out;
-    }
 }
