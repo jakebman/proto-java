@@ -1,26 +1,12 @@
 package com.charter.nns.protobuf;
 
-import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 
 public interface GetterSetterHelper extends FieldHandler {
-    @Override
-    Context.FieldContext context();
 
+    // Implementing classes are encouraged to cache this. However, there's no need to require them to do so.
     default NameVariants.FieldNames nameVariants() {
         return new NameVariants.FieldNames(context());
-    }
-
-    default TypeUtils.TypeNames typeNames() {
-        return context().executionContext().typeNames().lookup(context().fieldDescriptorProto());
-    }
-
-    default boolean isList() {
-        return context().fieldDescriptorProto().getLabel() == DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
-    }
-
-    default boolean isMap() {
-        return typeNames().descriptorProtoDefault().getOptions().getMapEntry();
     }
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
