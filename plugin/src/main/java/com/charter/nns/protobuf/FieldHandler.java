@@ -28,15 +28,4 @@ public interface FieldHandler extends Supplier<Stream<File>> {
     default Stream<File> warningResponse(String content) {
         return Stream.of(mixinContext(content));
     }
-
-
-    // String getFoo()
-    // Object flyBar(String one, String two)
-    default StringBuilder methodDeclarationHeader(Object type, String verb, String fieldName, String... args) {
-        StringBuilder out = new StringBuilder();
-        out.append(type);
-        out.append(" ");
-        out.append("%s%s(%s)".formatted(verb, fieldName, (String.join(",", args))));
-        return out;
-    }
 }

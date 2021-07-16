@@ -33,11 +33,13 @@ public interface GetterSetterHelper extends FieldHandler {
         return mixinContext(existingMethodDeclaration(protoType(), "get"));
     }
 
+    String LIST_GETTER_HASER_DECLARATION = "%s %s%sList();";
+    String GETTER_HASER_DECLARATION = "%s %s%s();";
     default String existingMethodDeclaration(String type, String verb) {
         if (isList()) {
-            return methodDeclarationHeader(type, verb, nameVariants().protoGeneratedName() + "List").append(";").toString();
+            return (LIST_GETTER_HASER_DECLARATION.formatted(type, verb, nameVariants().protoGeneratedName()));
         } else {
-            return methodDeclarationHeader(type, verb, nameVariants().protoGeneratedName()).append(";").toString();
+            return (GETTER_HASER_DECLARATION.formatted(type, verb, nameVariants().protoGeneratedName()));
         }
     }
 
