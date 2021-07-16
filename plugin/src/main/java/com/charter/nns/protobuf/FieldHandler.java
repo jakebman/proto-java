@@ -36,19 +36,14 @@ public interface FieldHandler extends Supplier<Stream<File>> {
         StringBuilder out = new StringBuilder();
         out.append(type);
         out.append(" ");
-        out.append(methodInvoke(verb, fieldName, out, args));
+        out.append("%s%s(%s)".formatted(verb, fieldName, (String.join(",", args))));
         return out;
-    }
-
-    default CharSequence methodInvoke(String verb, String fieldName, String... args) {
-        StringBuilder out = new StringBuilder();
-        return methodInvoke(verb, fieldName, out, args);
     }
 
     // flyBar(String one, String two)
     // OR
     // setBar(one, two)
-    default String methodInvoke(String verb, String fieldName, StringBuilder IGNORED_BUT_WE_RE_CAREFUL, String... args) {
+    default CharSequence methodInvoke(String verb, String fieldName, String... args) {
         return "%s%s(%s)".formatted(verb, fieldName, (String.join(",", args)));
     }
 }
