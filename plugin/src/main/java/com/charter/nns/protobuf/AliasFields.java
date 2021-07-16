@@ -51,6 +51,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         Stream<String> clearers = StreamUtil.<String>concat(
                 options.getClearersList().stream(),
                 aliases.stream().map(x -> "clear" + x));
+        // TODO: has-aliases
 
         return StreamUtil.concat(
                 generateGetters(getters),
