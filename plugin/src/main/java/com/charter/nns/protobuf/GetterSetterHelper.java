@@ -11,20 +11,12 @@ public interface GetterSetterHelper extends FieldHandler {
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     default PluginProtos.CodeGeneratorResponse.File has() {
-        if (isList()) {
-            return mixinContext("boolean has%sList();".formatted(nameVariants().protoGeneratedName()));
-        } else {
-            return mixinContext("boolean has%s();".formatted(nameVariants().protoGeneratedName()));
-        }
+        return mixinContext("boolean has%s();".formatted(nameVariants().protoGeneratedName()));
     }
 
     // needed for the mixin to compile. Both the Builder and the Message already have this defined
     default PluginProtos.CodeGeneratorResponse.File getter() {
-        if (isList()) {
-            return mixinContext("%s get%sList();".formatted(protoType(), nameVariants().protoGeneratedName()));
-        } else {
-            return mixinContext("%s get%s();".formatted(protoType(), nameVariants().protoGeneratedName()));
-        }
+        return mixinContext("%s get%s();".formatted(protoType(), nameVariants().protoGeneratedName()));
     }
 
     default String protoType() {
