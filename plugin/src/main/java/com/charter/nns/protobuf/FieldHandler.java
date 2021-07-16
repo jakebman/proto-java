@@ -4,9 +4,7 @@ import com.charter.nns.protobuf.filecoordinates.GeneratedResponseFileCoordinates
 import com.charter.nns.protobuf.filecoordinates.InsertionPoint;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse.File;
 
-import java.util.Arrays;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface FieldHandler extends Supplier<Stream<File>> {
@@ -38,22 +36,19 @@ public interface FieldHandler extends Supplier<Stream<File>> {
         StringBuilder out = new StringBuilder();
         out.append(type);
         out.append(" ");
-        methodInvoke(verb, fieldName, out, args);
+        out.append(methodInvoke(verb, fieldName, out, args));
         return out;
     }
 
-    default StringBuilder methodInvoke(String verb, String fieldName, String... args) {
-        return methodInvoke(verb, fieldName, new StringBuilder(), args);
+    default CharSequence methodInvoke(String verb, String fieldName, String... args) {
+        StringBuilder out = new StringBuilder();
+        return methodInvoke(verb, fieldName, out, args);
     }
 
     // flyBar(String one, String two)
     // OR
     // setBar(one, two)
-    default StringBuilder methodInvoke(String verb, String fieldName, StringBuilder out, String... args) {
-        out.append(verb);
-        out.append(fieldName);
-        return out
-                .append(Arrays.stream(args).collect(Collectors.joining(",", "(", ")")));
+    default String methodInvoke(String verb, String fieldName, StringBuilder IGNORED_BUT_WE_RE_CAREFUL, String... args) {
+        return "%s%s(%s)".formatted(verb, fieldName, (String.join(",", args)));
     }
-
 }

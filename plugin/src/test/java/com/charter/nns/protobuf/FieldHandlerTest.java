@@ -32,4 +32,12 @@ public class FieldHandlerTest {
         Assert.assertEquals("fooBarr(a,true,3,33L)", UNDER_TEST.methodInvoke("foo", "Barr", "a", "true", "3", "33L").toString());
         Assert.assertEquals("setComplicatedFieldName(String a,Boolean b,int c,Stream<Stream<File>> complicated arg)", UNDER_TEST.methodInvoke("set", "ComplicatedFieldName", "String a", "Boolean b", "int c", "Stream<Stream<File>> complicated arg").toString());
     }
+
+    @Test
+    public void  methodDeclarationHeader() {
+        // String getFoo()
+        Assert.assertEquals("String getFoo()", UNDER_TEST.methodDeclarationHeader("String", "get", "Foo").toString());
+        // Object flyBar(String one, String two)
+        Assert.assertEquals("Object flyBar(String one,String two)", UNDER_TEST.methodDeclarationHeader("Object", "fly", "Bar", "String one", "String two").toString());
+    }
 }
