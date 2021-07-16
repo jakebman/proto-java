@@ -102,11 +102,11 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         return mixinContext("""
                 default %s %s() // alias getter
                 {
-                    return %s;
+                    return get%s();
                 }
                 """.formatted(typeNames.boxed(),
                 method,
-                methodInvoke("get", nameVariants().protoGeneratedName())));
+                nameVariants().protoGeneratedName()));
     }
 
     private Stream<File> generateSetters(Stream<String> setters) {
@@ -118,11 +118,11 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         return builderContext("""
                 public final Builder %s(%s value) // alias setter
                 {
-                    return %s;
+                    return set%s(value);
                 }
                 """.formatted(method,
                 typeNames.boxed(),
-                methodInvoke("set", nameVariants().protoGeneratedName(), "value")));
+                nameVariants().protoGeneratedName()));
     }
 
     private Stream<File> generateClearers(Stream<String> setters) {
@@ -133,10 +133,10 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         return builderContext("""
                 public final Builder %s() // alias clear-er
                 {
-                    return %s;
+                    return clear%s();
                 }
                 """.formatted(method,
-                methodInvoke("clear", nameVariants().protoGeneratedName())));
+                nameVariants().protoGeneratedName()));
     }
 
     @Override

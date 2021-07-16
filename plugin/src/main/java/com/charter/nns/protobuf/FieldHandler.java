@@ -39,11 +39,4 @@ public interface FieldHandler extends Supplier<Stream<File>> {
         out.append("%s%s(%s)".formatted(verb, fieldName, (String.join(",", args))));
         return out;
     }
-
-    // flyBar(String one, String two)
-    // OR
-    // setBar(one, two)
-    default CharSequence methodInvoke(String verb, String fieldName, String... args) {
-        return "%s%s(%s)".formatted(verb, fieldName, (String.join(",", args)));
-    }
 }

@@ -79,39 +79,41 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
 
     private File nullableSetter() {
         return builderContext("""
-                public final %s // nullable field setter, which forwards to traditional builder methods
+                public final Builder set%s(%s value) // nullable field setter, which forwards to traditional builder methods
                 {
-                    if(value == null) return %s;
-                    else return %s;
+                    if(value == null) return clear%s();
+                    else return set%s(value);
                 }
                 """.formatted(
-                methodDeclarationHeader("Builder", "set", nameVariants.nullableName(), nullableType() + " value"),
-                methodInvoke("clear", nameVariants.protoGeneratedName()),
-                methodInvoke("set", nameVariants.protoGeneratedName(), "value")));
+                nameVariants.nullableName(),
+                nullableType(),
+                nameVariants.protoGeneratedName(),
+                nameVariants.protoGeneratedName()));
     }
 
     private File nullableGetter() {
         return mixinContext("""
-                default %s // nullable field getter which forwards to traditional getters
+                default %s get%s() // nullable field getter which forwards to traditional getters
                 {
-                    if(%s) return %s;
+                    if(has%s()) return get%s();
                     else return null;
                 }
                 """.formatted(
-                methodDeclarationHeader(nullableType(), "get", nameVariants.nullableName()),
-                methodInvoke("has", nameVariants.protoGeneratedName()),
-                methodInvoke("get", nameVariants.protoGeneratedName())));
+                nullableType(),
+                nameVariants.nullableName(),
+                nameVariants.protoGeneratedName(),
+                nameVariants.protoGeneratedName()));
     }
 
     private File nullableHas() {
         return mixinContext("""
-                default %s // nullable field has which forwards to traditional has
+                default boolean has%s() // nullable field has which forwards to traditional has
                 {
-                    return %s;
+                    return has%s();
                 }
                 """.formatted(
-                methodDeclarationHeader("boolean", "has", nameVariants.nullableName()),
-                methodInvoke("has", nameVariants.protoGeneratedName())));
+                nameVariants.nullableName(),
+                nameVariants.protoGeneratedName()));
     }
 
     @Override
