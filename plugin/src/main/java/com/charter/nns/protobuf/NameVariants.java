@@ -5,10 +5,14 @@ import org.apache.commons.lang3.StringUtils;
 import static com.charter.nns.protobuf.CodeGeneratorUtils.CamelCase;
 
 public interface NameVariants {
+
+    String proto_name();
+
+    String protoMangledName();
+
     // the preferred name
     String name();
 
-    String proto_name();
 
     record FieldNames(
             // Below, {AppropriateSuffix} stands in for the user's value for the appropriate suffix value
@@ -20,8 +24,8 @@ public interface NameVariants {
             // looks like original_name_from_proto_file{_appropriate_suffix}
             String proto_name,
             // looks like OriginalNameFromProtoFile{AppropriateSuffix}{OptionalProto-generatedListSuffix}; compatible with getX prefixing
-            String protoGeneratedName,
-            // looks like OriginalNameFromProtoFile; will be identical to protoGeneratedName if NullableFields doesn't apply and ListOptions.friendly_getter is disabled
+            String protoMangledName,
+            // looks like OriginalNameFromProtoFile; will be identical to protoMangledName if NullableFields doesn't apply and ListOptions.friendly_getter is disabled
             String nullableName)
             implements NameVariants {
         public FieldNames(Context.FieldContext fieldContext) {
@@ -31,11 +35,11 @@ public interface NameVariants {
         }
 
         public boolean hasNullable() {
-            return !StringUtils.equals(protoGeneratedName, nullableName);
+            return !StringUtils.equals(protoMangledName, nullableName);
         }
 
         // the preferred name to use in this plugin -
-        // since nullableName will only be different from protoGeneratedName if NullableFields generates it,
+        // since nullableName will only be different from protoMangledName if NullableFields generates it,
         // we can safely assume this name is correct.
         @Override
         public String name() {

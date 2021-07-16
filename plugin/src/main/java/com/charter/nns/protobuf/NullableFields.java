@@ -87,8 +87,8 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
                 """.formatted(
                 nameVariants.nullableName(),
                 nullableType(),
-                nameVariants.protoGeneratedName(),
-                nameVariants.protoGeneratedName()));
+                nameVariants.protoMangledName(),
+                nameVariants.protoMangledName()));
     }
 
     private File nullableGetter() {
@@ -101,8 +101,8 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
                 """.formatted(
                 nullableType(),
                 nameVariants.nullableName(),
-                nameVariants.protoGeneratedName(),
-                nameVariants.protoGeneratedName()));
+                nameVariants.protoMangledName(),
+                nameVariants.protoMangledName()));
     }
 
     private File nullableHas() {
@@ -113,7 +113,7 @@ public class NullableFields implements FieldHandler, GetterSetterHelper {
                 }
                 """.formatted(
                 nameVariants.nullableName(),
-                nameVariants.protoGeneratedName()));
+                nameVariants.protoMangledName()));
     }
 
     @Override

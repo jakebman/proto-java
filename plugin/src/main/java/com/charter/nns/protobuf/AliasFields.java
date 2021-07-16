@@ -107,7 +107,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
                 }
                 """.formatted(typeNames.boxed(),
                 method,
-                nameVariants().protoGeneratedName()));
+                nameVariants().protoMangledName()));
     }
 
     private Stream<File> generateSetters(Stream<String> setters) {
@@ -123,7 +123,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
                 }
                 """.formatted(method,
                 typeNames.boxed(),
-                nameVariants().protoGeneratedName()));
+                nameVariants().protoMangledName()));
     }
 
     private Stream<File> generateClearers(Stream<String> setters) {
@@ -137,7 +137,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
                     return clear%s();
                 }
                 """.formatted(method,
-                nameVariants().protoGeneratedName()));
+                nameVariants().protoMangledName()));
     }
 
     @Override
