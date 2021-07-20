@@ -19,13 +19,14 @@ public interface NameVariants {
             // that's either NullableOptions.primitveSuffix() or NullableOptions.objectSuffix(); based on whether this field is primitive or not
             // Or, it is the empty string if those suffixes do not match the name of this field.
             // The suffix *will* be part of the field described as long as it appears in the 'like' statement (It's removed in nullableName)
-            // The {OptionalProto-generatedListSuffix} is added by protoc to the field's name when the field is a list.
+            // The {OptionalProto-generatedListSuffix} is the suffix "List" when it's added by protoc to the field's name when the field is repeated.
 
             // looks like original_name_from_proto_file{_appropriate_suffix}
             String proto_name,
             // looks like OriginalNameFromProtoFile{AppropriateSuffix}{OptionalProto-generatedListSuffix}; compatible with getX prefixing
             String protoMangledName,
-            // looks like OriginalNameFromProtoFile; will be identical to protoMangledName if NullableFields doesn't apply and ListOptions.friendly_getter is disabled
+            // looks like OriginalNameFromProtoFile; and has the {AppropriateSuffix} *REMOVED*.
+            // This will be identical to protoMangledName if NullableFields doesn't apply and ListOptions.friendly_getter is disabled
             String nullableName)
             implements NameVariants {
         public FieldNames(Context.FieldContext fieldContext) {
