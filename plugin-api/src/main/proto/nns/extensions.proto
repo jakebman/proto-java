@@ -63,6 +63,11 @@ message JavaFieldExtension {
     // It behaves very similarly to alias_options.getters += "isX", but you don't have to figure out the x field's name each time
   }
   optional BooleanOptions boolean = 5;
+
+  message InlineCodeOptions {
+    repeated string code = 1;
+  }
+  optional InlineCodeOptions inline = 6;
 }
 
 message JavaMessageExtensions {

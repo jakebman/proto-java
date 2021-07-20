@@ -42,6 +42,13 @@ public interface FieldHandler extends Supplier<Stream<File>> {
                 .build();
     }
 
+    default File classContext(String content) {
+        return context()
+                .fileBuilderFor(InsertionPoint.class_scope)
+                .setContent(content)
+                .build();
+    }
+
     default Stream<File> warningResponse(String content) {
         return Stream.of(mixinContext(content));
     }
