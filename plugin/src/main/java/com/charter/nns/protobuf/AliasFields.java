@@ -51,6 +51,7 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         Stream<String> clearers = StreamUtil.<String>concat(
                 options.getClearersList().stream(),
                 aliases.stream().map(x -> "clear" + x));
+        // TODO: has-aliases
 
         return StreamUtil.concat(
                 generateGetters(getters),
@@ -102,11 +103,11 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         return mixinContext("""
                 default %s %s() // alias getter
                 {
-                    return %s;
+                    return get%s();
                 }
                 """.formatted(typeNames.boxed(),
                 method,
-                methodInvoke("get", nameVariants().protoGeneratedName())));
+                nameVariants().protoMangledName()));
     }
 
     private Stream<File> generateSetters(Stream<String> setters) {
@@ -118,11 +119,11 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         return builderContext("""
                 public final Builder %s(%s value) // alias setter
                 {
-                    return %s;
+                    return set%s(value);
                 }
                 """.formatted(method,
                 typeNames.boxed(),
-                methodInvoke("set", nameVariants().protoGeneratedName(), "value")));
+                nameVariants().protoMangledName()));
     }
 
     private Stream<File> generateClearers(Stream<String> setters) {
@@ -133,10 +134,10 @@ public class AliasFields implements FieldHandler, GetterSetterHelper {
         return builderContext("""
                 public final Builder %s() // alias clear-er
                 {
-                    return %s;
+                    return clear%s();
                 }
                 """.formatted(method,
-                methodInvoke("clear", nameVariants().protoGeneratedName())));
+                nameVariants().protoMangledName()));
     }
 
     @Override
